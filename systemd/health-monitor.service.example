@@ -1,0 +1,36 @@
+# systemd/health-monitor.service
+# Copy to: /etc/systemd/system/health-monitor.service
+# Update paths according to your installation
+
+[Unit]
+Description=TrustMonitor BMC/ROT POC (network/cpu/memory/disk/sensor/led)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+# Run as a non-root user (recommended)
+User=your_user
+Group=your_user
+
+# Project working directory (update path)
+WorkingDirectory=/path/to/your/trustmonitor
+
+# Load environment variables (update path)
+EnvironmentFile=/path/to/your/trustmonitor/config/health-monitor.env
+
+# Start script (update path)
+ExecStart=/bin/bash /path/to/your/trustmonitor/daemon/health_monitor.sh
+
+# Restart policy
+Restart=always
+RestartSec=5
+
+# Logging -> journald (default, but we state it clearly)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
