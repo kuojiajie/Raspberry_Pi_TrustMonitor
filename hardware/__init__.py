@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-TrustMonitor 硬體模組
+TrustMonitor Hardware Module
 ========================
 
-硬體相關模組的統一入口點
+Unified entry point for hardware-related modules
 """
 
 from .led_controller import LEDController

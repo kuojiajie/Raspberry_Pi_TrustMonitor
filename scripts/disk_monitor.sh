@@ -1,16 +1,15 @@
 #!/bin/bash
-# 磁碟監控腳本
+# Disk Monitoring Script
 # =================
-# 功能：監控磁碟使用量
-# 回傳：0=OK, 1=WARN, 2=ERROR
+# Purpose: Monitor disk usage
+# Returns: 0=OK, 1=WARN, 2=ERROR
 
 set -u
 
-# 全域變數
+# Global variables
 SCRIPT_NAME="Disk Monitor"
-SCRIPT_VERSION="1.0.0"
 
-# 工具函數
+# Utility functions
 log_info() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] $SCRIPT_NAME: $1"
 }
@@ -23,13 +22,13 @@ log_error() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] $SCRIPT_NAME: $1" >&2
 }
 
-# 磁碟使用量讀取
+# Disk usage reading
 disk_used_pct() {
     local mount_point="${1:-/}"
     df -P "$mount_point" | awk 'NR==2 {gsub(/%/,"",$5); print $5}'
 }
 
-# 磁碟檢查
+# Disk check
 disk_check() {
     local mount_point warn err used
     
@@ -38,32 +37,31 @@ disk_check() {
     err="${DISK_USED_ERROR_PCT:-90}"
     used="$(disk_used_pct "$mount_point")"
     
-    # 防呆檢查
+    # Sanity check
     if [[ -z "$used" ]]; then
-        log_error "無法讀取磁碟使用量: $mount_point"
+        log_error "Cannot read disk usage: $mount_point"
         return 2
     fi
     
-    # 檢查磁碟使用量
+    # Check disk usage
     if (( used >= err )); then
-        log_error "磁碟使用量過高: ${used}% (錯誤閾值: ${err}%)"
+        log_error "Disk usage too high: ${used}% (error threshold: ${err}%)"
         return 2
     fi
     
     if (( used >= warn )); then
-        log_warn "磁碟使用量偏高: ${used}% (警告閾值: ${warn}%)"
+        log_warn "Disk usage high: ${used}% (warning threshold: ${warn}%)"
         return 1
     fi
     
-    log_info "磁碟使用量正常: ${used}%"
+    log_info "Disk usage normal: ${used}%"
     return 0
 }
 
-# 主要執行邏輯
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    disk_check "/"
+# Main execution
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    disk_check "${1:-/}"
     rc=$?
-    echo "磁碟使用量: $(disk_used_pct "/")% 狀態碼: $rc"
+    echo "Disk usage: $(disk_used_pct "${1:-/}")% status code: $rc"
     exit $rc
 fi
-

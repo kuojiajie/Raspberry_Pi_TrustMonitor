@@ -50,91 +50,91 @@ else:
         sys.exit(1)
 
 class SensorConfig:
-    """感測器配置管理"""
+    """Sensor configuration management"""
     
     def __init__(self):
         self.load_config()
     
     def load_config(self):
-        """載入配置 (優先使用環境變數)"""
-        # 監控間隔 (秒)
+        """Load configuration with environment variable priority"""
+        # Monitoring interval (seconds)
         self.monitor_interval = int(os.getenv('SENSOR_MONITOR_INTERVAL', '60'))
         
-        # 溫濕度閾值
-        self.temp_warning = float(os.getenv('TEMP_WARNING', '30.0'))
-        self.temp_error = float(os.getenv('TEMP_ERROR', '35.0'))
+        # Temperature and humidity thresholds
+        self.temp_warning = float(os.getenv('TEMP_WARNING', '40.0'))
+        self.temp_error = float(os.getenv('TEMP_ERROR', '45.0'))
         self.humidity_warning = float(os.getenv('HUMIDITY_WARNING', '70.0'))
         self.humidity_error = float(os.getenv('HUMIDITY_ERROR', '80.0'))
         
-        # 感測器重試設定
+        # Sensor retry configuration
         self.sensor_max_retries = int(os.getenv('SENSOR_MAX_RETRIES', '3'))
         self.sensor_retry_delay = float(os.getenv('SENSOR_RETRY_DELAY', '1.0'))
         
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 配置載入完成")
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 監控間隔: {self.monitor_interval} 秒")
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 溫度警告: {self.temp_warning}°C, 錯誤: {self.temp_error}°C")
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 濕度警告: {self.humidity_warning}%, 錯誤: {self.humidity_error}%")
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 感測器重試: 最大 {self.sensor_max_retries} 次, 間隔 {self.sensor_retry_delay} 秒")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Configuration loaded successfully")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Monitoring interval: {self.monitor_interval} seconds")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Temperature thresholds: warning {self.temp_warning}°C, error {self.temp_error}°C")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Humidity thresholds: warning {self.humidity_warning}%, error {self.humidity_error}%")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Sensor retry settings: max {self.sensor_max_retries} retries, delay {self.sensor_retry_delay} seconds")
 
 class SensorMonitor:
-    """TrustMonitor 感測器監控器"""
+    """TrustMonitor sensor monitoring service"""
     
     def __init__(self):
-        """初始化感測器監控器"""
+        """Initialize sensor monitor"""
         self.config = SensorConfig()
         self.led_controller = LEDController()
         self.sensor_reader = SensorReader()
         self.current_status = None
         
     def initialize(self):
-        """初始化硬體"""
+        """Initialize hardware components"""
         try:
-            # 初始化 LED 控制器
+            # Initialize LED controller
             self.led_controller.setup_gpio()
             
-            # 初始化感測器
+            # Initialize sensor
             self.sensor_reader.initialize_sensor()
             
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 感測器監控器初始化完成")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Sensor monitor initialization completed")
             
         except Exception as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 感測器監控器初始化失敗 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Sensor monitor initialization failed - {e}")
             raise
     
     def determine_status(self, temperature: float, humidity: float) -> str:
-        """根據溫濕度決定 LED 狀態"""
-        # 檢查錯誤閾值
+        """Determine LED status based on temperature and humidity"""
+        # Check error thresholds
         if temperature >= self.config.temp_error or humidity >= self.config.humidity_error:
             return 'red'
         
-        # 檢查警告閾值
+        # Check warning thresholds
         if temperature >= self.config.temp_warning or humidity >= self.config.humidity_warning:
             return 'blue'
         
-        # 正常狀態
+        # Normal status
         return 'green'
     
     def update_led_status(self, status: str):
-        """更新 LED 狀態"""
+        """Update LED status"""
         if status != self.current_status:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 狀態變更: {self.current_status} -> {status}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Status changed: {self.current_status} -> {status}")
             
-            # 先關閉所有 LED
+            # Turn off all LEDs first
             self.led_controller.turn_off_all()
             
-            # 等待一下確保關閉
+            # Wait to ensure LEDs are off
             time.sleep(0.5)
             
-            # 設定新狀態
+            # Set new status
             self.led_controller.set_pure_color(status)
             
             self.current_status = status
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LED {status} 設定成功")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LED {status} set successfully")
     
     def read_sensors(self) -> Optional[Tuple[float, float]]:
-        """讀取溫濕度"""
+        """Read temperature and humidity"""
         try:
-            # 讀取溫度
+            # Read temperature
             temperature = self.sensor_reader.read_sensor_with_retry(
                 'temperature', 
                 self.config.sensor_max_retries, 
@@ -144,10 +144,10 @@ class SensorMonitor:
             if temperature is None:
                 return None
             
-            # 等待一下再讀取濕度
+            # Wait before reading humidity
             time.sleep(2)
             
-            # 讀取濕度
+            # Read humidity
             humidity = self.sensor_reader.read_sensor_with_retry(
                 'humidity', 
                 self.config.sensor_max_retries, 
@@ -157,111 +157,111 @@ class SensorMonitor:
             if humidity is None:
                 return None
             
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 感測器讀取成功: 溫度 {temperature:.1f}°C, 濕度 {humidity:.1f}%")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Sensor read successful: temperature {temperature:.1f}°C, humidity {humidity:.1f}%")
             return temperature, humidity
             
         except Exception as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 感測器讀取失敗 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Sensor read failed - {e}")
             return None
     
     def run_once(self):
-        """執行一次監控"""
+        """Execute one monitoring cycle"""
         try:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 開始感測器讀取 (最大重試 {self.config.sensor_max_retries} 次)")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting sensor reading (max retries: {self.config.sensor_max_retries} times)")
             
-            # 讀取感測器
+            # Read sensors
             result = self.read_sensors()
             
             if result is not None:
                 temperature, humidity = result
                 
-                # 決定狀態
+                # Determine status
                 status = self.determine_status(temperature, humidity)
                 
-                # 更新 LED 狀態
+                # Update LED status
                 self.update_led_status(status)
                 
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 溫度: {temperature:.1f}°C, 濕度: {humidity:.1f}%, 狀態: {status}")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Temperature: {temperature:.1f}°C, Humidity: {humidity:.1f}%, Status: {status}")
             else:
-                # 感測器失敗，開啟紅色 LED
+                # Sensor failed, turn on red LED
                 self.update_led_status('red')
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 感測器讀取失敗，狀態: {self.current_status}")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Sensor read failed, status: {self.current_status}")
             
         except Exception as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 監控執行失敗 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Monitoring execution failed - {e}")
     
     def run_continuous(self):
-        """持續監控"""
+        """Continuous monitoring"""
         try:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 開始持續監控，間隔: {self.config.monitor_interval} 秒")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting continuous monitoring, interval: {self.config.monitor_interval} seconds")
             
             while True:
                 self.run_once()
                 time.sleep(self.config.monitor_interval)
                 
         except KeyboardInterrupt:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 使用者中斷監控")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] User interrupted monitoring")
         except Exception as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 持續監控失敗 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Continuous monitoring failed - {e}")
         finally:
             self.cleanup()
     
     def cleanup(self):
-        """清理資源"""
+        """Clean up resources"""
         try:
             if hasattr(self.led_controller, 'cleanup_gpio'):
                 self.led_controller.cleanup_gpio()
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 感測器監控器清理完成")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Sensor monitor cleanup completed")
         except Exception as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] WARNING: 清理失敗 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] WARNING: Cleanup failed - {e}")
 
 def print_usage():
-    """顯示使用說明"""
-    print("TrustMonitor 感測器監控服務")
+    """Display usage instructions"""
+    print("TrustMonitor Sensor Monitoring Service")
     print("=" * 50)
-    print("用法: sensor_monitor.py [options]")
+    print("Usage: sensor_monitor.py [options]")
     print()
-    print("選項:")
-    print("  --help, -h     顯示此說明")
-    print("  --test, -t     執行一次測試")
+    print("Options:")
+    print("  --help, -h     Display this help")
+    print("  --test, -t     Execute one test")
     print()
-    print("環境變數:")
-    print("  SENSOR_MONITOR_INTERVAL  監控間隔 (秒，預設 60)")
-    print("  TEMP_WARNING           溫度警告閾值 (°C，預設 30.0)")
-    print("  TEMP_ERROR             溫度錯誤閾值 (°C，預設 35.0)")
-    print("  HUMIDITY_WARNING       濕度警告閾值 (%，預設 70.0)")
-    print("  HUMIDITY_ERROR         濕度錯誤閾值 (%，預設 80.0)")
-    print("  SENSOR_MAX_RETRIES     感測器最大重試次數 (預設 3)")
-    print("  SENSOR_RETRY_DELAY     感測器重試間隔 (秒，預設 1.0)")
+    print("Environment Variables:")
+    print("  SENSOR_MONITOR_INTERVAL  Monitoring interval (seconds, default 60)")
+    print("  TEMP_WARNING           Temperature warning threshold (°C, default 40.0)")
+    print("  TEMP_ERROR             Temperature error threshold (°C, default 45.0)")
+    print("  HUMIDITY_WARNING       Humidity warning threshold (%), default 70.0)")
+    print("  HUMIDITY_ERROR         Humidity error threshold (%), default 80.0)")
+    print("  SENSOR_MAX_RETRIES     Sensor max retry count (default 3)")
+    print("  SENSOR_RETRY_DELAY     Sensor retry delay (seconds, default 1.0)")
     print()
     sys.exit(0)
 
 def main():
-    """主程式"""
-    # 檢查參數
+    """Main program"""
+    # Check parameters
     if len(sys.argv) > 1 and sys.argv[1] in ['--help', '-h']:
         print_usage()
     
-    # 建立感測器監控器
+    # Create sensor monitor
     monitor = SensorMonitor()
     
     try:
-        # 初始化硬體
+        # Initialize hardware
         monitor.initialize()
         
-        # 執行一次測試
+        # Execute one test
         if len(sys.argv) > 1 and sys.argv[1] in ['--test', '-t']:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 執行一次測試...")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Executing one test...")
             monitor.run_once()
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 測試完成")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Test completed")
         else:
-            # 持續監控
+            # Continuous monitoring
             monitor.run_continuous()
             
     except KeyboardInterrupt:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 使用者中斷操作")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] User interrupted monitoring")
     except Exception as e:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 主程式失敗 - {e}")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: {e}")
         sys.exit(1)
     finally:
         monitor.cleanup()

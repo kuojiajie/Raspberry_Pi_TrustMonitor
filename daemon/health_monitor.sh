@@ -58,7 +58,7 @@ while true; do
     0) log_info  "Network OK (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
     1) log_warn  "Network WARN (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
     2) 
-      # 使用 network_check 提供的錯誤類型函數
+      # Use error type function provided by network_check
       error_type=$(network_error_type)
       case "$error_type" in
         "connection_failed")
@@ -68,7 +68,7 @@ while true; do
         "high_packet_loss")
           log_error "Network ERROR (target=$PING_TARGET high packet loss=${packet_loss}%)" ;;
         *)
-          log_error "Network ERROR (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
+          log_error "Network ERROR (target=$PING_TARGET unknown error)" ;;
       esac
       ;;
     *) log_error "Network UNKNOWN (rc=$network_rc target=$PING_TARGET)" ;;
@@ -125,29 +125,28 @@ while true; do
   # --- Sensor Monitoring ---
   if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
     sensor_rc=0
-    # 執行感測器監控 (測試模式)
+    # Execute sensor monitoring (test mode)
     python3 "$SENSOR_SCRIPT" --test >/dev/null 2>&1 || sensor_rc=$?
     
     case "$sensor_rc" in
       0) 
-        # 解析感測器讀取結果
+        # Parse sensor reading results
         sensor_output=$(python3 "$SENSOR_SCRIPT" --test 2>&1)
-        if echo "$sensor_output" | grep -q "感測器讀取成功"; then
-          temp=$(echo "$sensor_output" | grep "溫度:" | sed 's/.*溫度: \([0-9.]*\)°C.*/\1/')
-          humidity=$(echo "$sensor_output" | grep "濕度:" | sed 's/.*濕度: \([0-9.]*\)%.*/\1/')
-          status=$(echo "$sensor_output" | grep "狀態:" | sed 's/.*狀態: \([a-z]*\).*/\1/')
+        if echo "$sensor_output" | grep -q "Sensor read successful"; then
+          temp=$(echo "$sensor_output" | grep -E "Temperature: ([0-9.]+)°C" | sed -r 's/.*Temperature: ([0-9.]+)°C.*/\1/')
+          humidity=$(echo "$sensor_output" | grep -E "Humidity: ([0-9.]+)%" | sed -r 's/.*Humidity: ([0-9.]+)%.*/\1/')
+          status=$(echo "$sensor_output" | grep -E "Status: ([a-z]+)" | sed -r 's/.*Status: ([a-z]+).*/\1/')
           log_info "Sensor OK (temp=${temp}°C humidity=${humidity}% status=${status})"
         else
-          log_warn "Sensor WARN (讀取失敗)"
+          log_warn "Sensor WARN (Read failed)"
         fi
         ;;
       *) 
-        log_error "Sensor ERROR (執行失敗)" ;;
+        log_error "Sensor ERROR (Execution failed)" ;;
     esac
   else
-    log_warn "Sensor UNAVAILABLE (腳本不存在)"
+    log_warn "Sensor UNAVAILABLE (Script not found)"
   fi
 
   sleep "$CHECK_INTERVAL"
 done
-

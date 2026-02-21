@@ -51,7 +51,7 @@ class LEDController:
         self.current_color = None
         
     def setup_gpio(self):
-        """設定 GPIO 和 PWM"""
+        """Setup GPIO and PWM"""
         global pins, p_R, p_G, p_B
         
         try:
@@ -59,30 +59,30 @@ class LEDController:
             GPIO.setmode(GPIO.BCM)
             GPIO.setwarnings(False)
             
-            # 設定 GPIO 腳位
+            # Setup GPIO pins
             for i in pins:
                 GPIO.setup(pins[i], GPIO.OUT)
                 GPIO.output(pins[i], GPIO.LOW)
             
-            # 初始化 PWM (根據廠商規格)
+            # Initialize PWM (manufacturer specifications)
             p_R = GPIO.PWM(pins['pin_R'], PWM_FREQUENCIES['red'])
             p_G = GPIO.PWM(pins['pin_G'], PWM_FREQUENCIES['green'])
             p_B = GPIO.PWM(pins['pin_B'], PWM_FREQUENCIES['blue'])
             
-            # 初始化占空比為 0 (LED 關閉)
+            # Initialize duty cycle to 0 (LED off)
             p_R.start(0)
             p_G.start(0)
             p_B.start(0)
             
             self.initialized = True
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LED 控制器初始化成功")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LED controller initialization successful")
             
         except Exception as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: LED 初始化失敗 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: LED initialization failed - {e}")
             raise
     
     def cleanup_gpio(self):
-        """清理 GPIO 資源"""
+        """Clean up GPIO resources"""
         global p_R, p_G, p_B
         
         try:
@@ -99,67 +99,124 @@ class LEDController:
                 GPIO.output(pins[i], GPIO.LOW)
             
             GPIO.cleanup()
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LED 資源清理完成")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LED resource cleanup completed")
             
         except Exception as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] WARNING: LED 資源清理失敗 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] WARNING: LED resource cleanup failed - {e}")
     
     def set_pure_color(self, color):
-        """設定純色 - 同時關閉其他顏色"""
+        """Set pure color - turn off other colors simultaneously"""
         global p_R, p_G, p_B
         
         if not self.initialized:
-            raise RuntimeError("LED 控制器未初始化")
+            raise RuntimeError("LED controller not initialized")
         
-        # 關閉所有 LED
+        # Turn off all LEDs
         p_R.ChangeDutyCycle(0)
         p_G.ChangeDutyCycle(0)
         p_B.ChangeDutyCycle(0)
         
-        # 設定指定顏色 (0=關閉, 100=最亮)
+        # Set specified color (0=off, 100=brightest)
         if color == 'red':
-            p_R.ChangeDutyCycle(100)  # 紅色最亮
+            p_R.ChangeDutyCycle(100)  # Red brightest
             self.current_color = 'red'
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 設定紅色: 紅色=100(最亮), 綠色=0(關閉), 藍色=0(關閉)")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Setting red: red=100(brightest), green=0(off), blue=0(off)")
             
         elif color == 'green':
-            p_G.ChangeDutyCycle(100)  # 綠色最亮
+            p_G.ChangeDutyCycle(100)  # Green brightest
             self.current_color = 'green'
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 設定綠色: 紅色=0(關閉), 綠色=100(最亮), 藍色=0(關閉)")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Setting green: red=0(off), green=100(brightest), blue=0(off)")
             
         elif color == 'blue':
-            p_B.ChangeDutyCycle(100)  # 藍色最亮
+            p_B.ChangeDutyCycle(100)  # Blue brightest
             self.current_color = 'blue'
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 設定藍色: 紅色=0(關閉), 綠色=0(關閉), 藍色=100(最亮)")
-        
-        time.sleep(0.1)  # 等待顏色穩定
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Setting blue: red=0(off), green=0(off), blue=100(brightest)")
+            
+        else:
+            raise ValueError(f"Invalid color: {color}")
     
     def turn_off_all(self):
-        """關閉所有 LED"""
+        """Turn off all LEDs"""
         global p_R, p_G, p_B
         
         if not self.initialized:
             return
         
+        # Turn off all LEDs
         p_R.ChangeDutyCycle(0)
         p_G.ChangeDutyCycle(0)
         p_B.ChangeDutyCycle(0)
         
         self.current_color = None
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 所有 LED 已關閉")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] All LEDs turned off")
     
     def blink_color(self, color, times=5, speed=0.5):
-        """閃爍指定顏色"""
+        """Blink specified color"""
         if not self.initialized:
-            raise RuntimeError("LED 控制器未初始化")
+            raise RuntimeError("LED controller not initialized")
         
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 開始 {color} LED 閃爍 - {times} 次, 每次間隔 {speed} 秒")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting {color} LED blinking - {times} times, {speed}s interval")
         
         for i in range(times):
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 第 {i+1}/{times} 次閃爍")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Blink {i+1}/{times}")
             self.set_pure_color(color)
             time.sleep(speed)
             self.turn_off_all()
             time.sleep(speed)
         
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {color} LED 閃爍完成")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {color} LED blinking completed")
+
+def main():
+    """Main program - Command line interface"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='TrustMonitor LED Controller')
+    parser.add_argument('--color', choices=['red', 'green', 'blue'], help='Set LED color')
+    parser.add_argument('--off', action='store_true', help='Turn off all LEDs')
+    parser.add_argument('--blink', choices=['red', 'green', 'blue'], help='Blink specified color')
+    parser.add_argument('--times', type=int, default=3, help='Blink times')
+    parser.add_argument('--speed', type=float, default=0.5, help='Blink interval (seconds)')
+    
+    args = parser.parse_args()
+    
+    controller = LEDController()
+    
+    try:
+        controller.setup_gpio()
+        
+        if args.color:
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Setting {args.color} LED - press Ctrl+C to stop")
+            controller.set_pure_color(args.color)
+            
+            # Wait for user interrupt
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] User interrupted, turning off LED")
+                controller.turn_off_all()
+                
+        elif args.blink:
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting {args.blink} LED blinking")
+            controller.blink_color(args.blink, args.times, args.speed)
+            
+        elif args.off:
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Turning off all LEDs")
+            controller.turn_off_all()
+        else:
+            parser.print_help()
+            
+    except KeyboardInterrupt:
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] User interrupted operation")
+    except Exception as e:
+        print(f"ERROR: {e}")
+    finally:
+        # Only cleanup on error or interrupt
+        if 'args' not in locals():
+            controller.cleanup_gpio()
+        elif args.off:
+            controller.cleanup_gpio()
+        # Don't cleanup for color and blink modes - let user control
+
+if __name__ == '__main__':
+    main()

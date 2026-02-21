@@ -8,7 +8,6 @@ set -u
 
 # Global variables
 SCRIPT_NAME="CPU Monitor"
-SCRIPT_VERSION="1.0.0"
 
 # Utility functions
 log_info() {
@@ -57,4 +56,3 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     cpu_check
     exit $?
 fi
-

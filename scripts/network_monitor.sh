@@ -1,16 +1,26 @@
 #!/bin/bash
-# 網路監控腳本
+# Network Monitoring Script
 # =================
-# 功能：監控網路連線品質
-# 回傳：0=OK, 1=WARN, 2=ERROR
+# Purpose: Monitor network connectivity quality
+# Returns: 0=OK, 1=WARN, 2=ERROR
 
 set -u
 
-# 全域變數
-SCRIPT_NAME="Network Monitor"
-SCRIPT_VERSION="1.0.0"
+# Load environment variables
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# 工具函數
+# Load environment variables (if exists)
+ENV_FILE="$BASE_DIR/config/health-monitor.env"
+if [[ -f "$ENV_FILE" ]]; then
+    # shellcheck disable=SC1090
+    source "$ENV_FILE"
+fi
+
+# Global variables
+SCRIPT_NAME="Network Monitor"
+
+# Utility functions
 log_info() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] $SCRIPT_NAME: $1"
 }
@@ -23,7 +33,7 @@ log_error() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] $SCRIPT_NAME: $1" >&2
 }
 
-# 網路品質讀取函數
+# Network quality reading functions
 network_latency_ms() {
     local latency
     latency="$(ping -c 3 "$PING_TARGET" 2>/dev/null | tail -1 | awk -F'/' '{print $5}')"
@@ -36,7 +46,7 @@ network_packet_loss_pct() {
     echo "${loss:-0}"
 }
 
-# 網路錯誤類型判斷
+# Network error type determination
 network_error_type() {
     local latency loss warn_latency err_latency warn_loss err_loss
     
@@ -48,19 +58,19 @@ network_error_type() {
     latency="$(network_latency_ms)"
     loss="$(network_packet_loss_pct)"
     
-    # 檢查連線失敗
+    # Check connection failure
     if [[ "$latency" == "0" && "$loss" == "0" ]]; then
         echo "connection_failed"
         return
     fi
     
-    # 檢查延遲過高
+    # Check high latency
     if (( $(echo "$latency >= $err_latency" | bc -l 2>/dev/null || echo "0") )); then
         echo "high_latency"
         return
     fi
     
-    # 檢查封包遺失過高
+    # Check high packet loss
     if (( $(echo "$loss >= $err_loss" | bc -l 2>/dev/null || echo "0") )); then
         echo "high_packet_loss"
         return
@@ -69,7 +79,7 @@ network_error_type() {
     echo "unknown"
 }
 
-# 網路檢查
+# Network check
 network_check() {
     local latency loss warn_latency err_latency warn_loss err_loss
     
@@ -81,46 +91,45 @@ network_check() {
     latency="$(network_latency_ms)"
     loss="$(network_packet_loss_pct)"
     
-    # 檢查連線失敗
+    # Check connection failure
     if [[ "$latency" == "0" && "$loss" == "0" ]]; then
-        log_error "網路連線失敗: 無法連接到 $PING_TARGET"
+        log_error "Network connection failed: Cannot connect to $PING_TARGET"
         return 2
     fi
     
-    # 檢查延遲過高
+    # Check high latency
     if (( $(echo "$latency >= $err_latency" | bc -l 2>/dev/null || echo "0") )); then
-        log_error "網路延遲過高: ${latency}ms (錯誤閾值: ${err_latency}ms)"
+        log_error "Network latency too high: ${latency}ms (error threshold: ${err_latency}ms)"
         return 2
     fi
     
     if (( $(echo "$latency >= $warn_latency" | bc -l 2>/dev/null || echo "0") )); then
-        log_warn "網路延遲偏高: ${latency}ms (警告閾值: ${warn_latency}ms)"
+        log_warn "Network latency high: ${latency}ms (warning threshold: ${warn_latency}ms)"
         return 1
     fi
     
-    # 檢查封包遺失過高
+    # Check high packet loss
     if (( $(echo "$loss >= $err_loss" | bc -l 2>/dev/null || echo "0") )); then
-        log_error "網路封包遺失過高: ${loss}% (錯誤閾值: ${err_loss}%)"
+        log_error "Network packet loss too high: ${loss}% (error threshold: ${err_loss}%)"
         return 2
     fi
     
     if (( $(echo "$loss >= $warn_loss" | bc -l 2>/dev/null || echo "0") )); then
-        log_warn "網路封包遺失偏高: ${loss}% (警告閾值: ${warn_loss}%)"
+        log_warn "Network packet loss high: ${loss}% (warning threshold: ${warn_loss}%)"
         return 1
     fi
     
-    log_info "網路品質正常: 延遲 ${latency}ms, 封包遺失 ${loss}%"
+    log_info "Network quality normal: latency=${latency}ms, loss=${loss}%"
     return 0
 }
 
-# 主要執行邏輯
+# Main execution
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     network_check
     rc=$?
     latency="$(network_latency_ms)"
     loss="$(network_packet_loss_pct)"
     error_type=$(network_error_type)
-    echo "網路延遲: ${latency}ms, 封包遺失: ${loss}%, 狀態碼: $rc, 錯誤類型: ${error_type}"
+    echo "Network latency: ${latency}ms, packet loss: ${loss}%, status code: $rc, error type: ${error_type}"
     exit $rc
 fi
-

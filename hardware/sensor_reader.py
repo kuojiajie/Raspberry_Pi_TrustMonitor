@@ -48,67 +48,67 @@ class SensorReader:
     def read_temperature(self):
         """讀取溫度"""
         if not self.initialized:
-            raise RuntimeError("感測器未初始化")
+            raise RuntimeError("Sensor not initialized")
         
         try:
             temperature = self.dht.temperature
             if temperature is not None:
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 溫度讀取成功: {temperature:.1f}°C")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Temperature read successful: {temperature:.1f}°C")
                 return temperature
             else:
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 溫度讀取失敗 - 感測器返回 None")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Temperature read failed - sensor returned None")
                 return None
                 
         except RuntimeError as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 溫度讀取失敗 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Temperature read failed - {e}")
             return None
         except Exception as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 溫度感測器錯誤 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Temperature sensor error - {e}")
             return None
     
     def read_humidity(self):
-        """讀取濕度"""
+        """Read humidity"""
         if not self.initialized:
-            raise RuntimeError("感測器未初始化")
+            raise RuntimeError("Sensor not initialized")
         
         try:
             humidity = self.dht.humidity
             if humidity is not None:
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 濕度讀取成功: {humidity:.1f}%")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Humidity read successful: {humidity:.1f}%")
                 return humidity
             else:
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 濕度讀取失敗 - 感測器返回 None")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Humidity read failed - sensor returned None")
                 return None
                 
         except RuntimeError as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 濕度讀取失敗 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Humidity read failed - {e}")
             return None
         except Exception as e:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 濕度感測器錯誤 - {e}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Humidity sensor error - {e}")
             return None
     
     def read_sensor_with_retry(self, sensor_type, max_retries=3, retry_delay=2):
-        """讀取感測器數值 (含重試機制)"""
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 開始讀取 {sensor_type} (最大重試 {max_retries} 次)")
+        """Read sensor values with retry mechanism"""
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting {sensor_type} read (max retries: {max_retries})")
         
         for attempt in range(max_retries):
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 第 {attempt + 1}/{max_retries} 次嘗試")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Attempt {attempt + 1}/{max_retries}")
             
             if sensor_type == "temperature":
                 value = self.read_temperature()
             elif sensor_type == "humidity":
                 value = self.read_humidity()
             else:
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: 不支援的感測器類型 - {sensor_type}")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Unsupported sensor type - {sensor_type}")
                 return None
             
             if value is not None:
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {sensor_type} 讀取成功")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {sensor_type} read successful")
                 return value
             
             if attempt < max_retries - 1:
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 等待 {retry_delay} 秒後重試...")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Waiting {retry_delay} seconds before retry...")
                 time.sleep(retry_delay)
         
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: {sensor_type} 讀取失敗 - 已達最大重試次數")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: {sensor_type} read failed - max retries reached")
         return None

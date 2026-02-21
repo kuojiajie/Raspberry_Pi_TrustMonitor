@@ -14,4 +14,3 @@ _log() {
 log_info()  { _log "INFO"  "$1"; }
 log_warn()  { _log "WARN"  "$1"; }
 log_error() { _log "ERROR" "$1"; }
-

@@ -50,3 +50,5 @@ systemd/health-monitor.service
 .env.test
 .env.production
 
+# Hardware module cache
+hardware/__pycache__/

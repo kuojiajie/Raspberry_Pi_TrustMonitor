@@ -11,4 +11,3 @@ sudo systemctl unset-environment FORCE_CRASH
 
 echo "Now follow logs:"
 echo "  sudo journalctl -u health-monitor.service -f"
-
