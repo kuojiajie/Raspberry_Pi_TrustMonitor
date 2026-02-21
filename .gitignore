@@ -1,5 +1,6 @@
-# Local environment (do not commit)
+# Local environment (do not commit - fallback values are built-in)
 config/health-monitor.env
+config/health-monitor.env.*
 
 # Logs
 logs/*.log

@@ -12,6 +12,28 @@ if [[ -z "${PING_TARGET:-}" && -f "$ENV_FILE" ]]; then
   source "$ENV_FILE"
 fi
 
+# Add default fallback for all environment variables
+: "${PING_TARGET:=8.8.8.8}"
+: "${CHECK_INTERVAL:=30}"
+: "${CPU_LOAD_WARN:=1.50}"
+: "${CPU_LOAD_ERROR:=3.00}"
+: "${MEM_AVAIL_WARN_PCT:=15}"
+: "${MEM_AVAIL_ERROR_PCT:=5}"
+: "${DISK_USED_WARN_PCT:=80}"
+: "${DISK_USED_ERROR_PCT:=90}"
+: "${CPU_TEMP_WARN:=65}"
+: "${CPU_TEMP_ERROR:=75}"
+: "${NETWORK_LATENCY_WARN_MS:=200}"
+: "${NETWORK_LATENCY_ERROR_MS:=500}"
+: "${NETWORK_PACKET_LOSS_WARN_PCT:=10}"
+: "${NETWORK_PACKET_LOSS_ERROR_PCT:=30}"
+: "${TEMP_WARNING:=40.0}"
+: "${TEMP_ERROR:=45.0}"
+: "${HUMIDITY_WARNING:=70.0}"
+: "${HUMIDITY_ERROR:=80.0}"
+: "${SENSOR_MAX_RETRIES:=3}"
+: "${SENSOR_RETRY_DELAY:=1.0}"
+
 # Load monitoring modules
 source "$BASE_DIR/lib/logger.sh"
 source "$BASE_DIR/scripts/network_monitor.sh"
