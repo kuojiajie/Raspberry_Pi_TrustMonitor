@@ -160,6 +160,7 @@ python3 hardware/led_controller.py --blink blue
 ✅ **System Monitoring**: CPU, memory, disk, network, and temperature monitoring active
 ✅ **Service Integration**: Automatic startup and systemd integration verified
 ✅ **Environment Fallback**: Built-in default values ensure system works without config files
+✅ **Dependency Checking**: Startup validation ensures all required dependencies are available
 ✅ **Production Ready**: Stable 30-second monitoring cycles with automatic recovery
 
 ### Service Management
@@ -283,9 +284,11 @@ TrustMonitor demonstrates key BMC/ROT concepts in an accessible way:
 
 ## 📋 Version Information
 
-**Current Version**: v1.1.0 (Phase 1 Complete - Production Ready)
+**Current Version**: v1.1.2 (Phase 1 Refactoring - Enhanced Reliability)
 
 ### Version History
+- **v1.1.2**: Phase 1 Refactoring - Environment fallback and dependency checking
+- **v1.1.1**: Enhanced reliability with environment variable fallback mechanism
 - **v1.1.0**: Phase 1 Complete - Hardware integration and system monitoring with full test validation
 - **v1.0.0**: Initial release with basic monitoring capabilities
 
@@ -294,6 +297,7 @@ TrustMonitor demonstrates key BMC/ROT concepts in an accessible way:
 - ✅ Hardware integration (DHT11 sensor and RGB LED)
 - ✅ Professional service management (systemd with journald logging)
 - ✅ Environment fallback mechanism (built-in default values for reliability)
+- ✅ Dependency checking (startup validation of required dependencies)
 - ✅ Production-ready stability and reliability
 
 ### Known Limitations

@@ -34,6 +34,61 @@ fi
 : "${SENSOR_MAX_RETRIES:=3}"
 : "${SENSOR_RETRY_DELAY:=1.0}"
 
+# Dependency checking at startup
+check_dependencies() {
+    local missing_deps=()
+    local warning_deps=()
+    
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Checking system dependencies..."
+    
+    # Check system commands
+    local system_commands=("bc" "python3" "pip3")
+    for cmd in "${system_commands[@]}"; do
+        if ! command -v "$cmd" &> /dev/null; then
+            missing_deps+=("$cmd")
+        fi
+    done
+    
+    # Check Python packages
+    local python_packages=("adafruit_dht" "RPi.GPIO")
+    for package in "${python_packages[@]}"; do
+        if ! python3 -c "import $package" &> /dev/null; then
+            missing_deps+=("python3-$package")
+        fi
+    done
+    
+    # Check systemd availability
+    if ! command -v systemctl &> /dev/null; then
+        warning_deps+=("systemd (service management will be limited)")
+    fi
+    
+    # Check hardware accessibility
+    if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
+        if ! python3 -c "import adafruit_dht" &> /dev/null; then
+            warning_deps+=("GPIO access (may need sudo or hardware not connected)")
+        fi
+    fi
+    
+    # Report results
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Missing required dependencies:"
+        for dep in "${missing_deps[@]}"; do
+            echo "  - $dep"
+        done
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] FATAL: Cannot start without required dependencies"
+        exit 1
+    fi
+    
+    if [[ ${#warning_deps[@]} -gt 0 ]]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARNING: Optional dependencies missing:"
+        for dep in "${warning_deps[@]}"; do
+            echo "  - $dep"
+        done
+    fi
+    
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] All required dependencies available"
+}
+
 # Load monitoring modules
 source "$BASE_DIR/lib/logger.sh"
 source "$BASE_DIR/scripts/network_monitor.sh"
@@ -60,6 +115,9 @@ cleanup() {
   exit 0
 }
 trap cleanup SIGINT SIGTERM
+
+# Check dependencies before starting
+check_dependencies
 
 log_info "Health monitor started"
 
