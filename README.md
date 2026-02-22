@@ -97,7 +97,7 @@ pip3 install adafruit-circuitpython-dht
 
 # Install system dependencies (if needed)
 sudo apt update
-sudo apt install bc  # For floating point comparisons in shell scripts
+# Note: bc dependency removed - using awk for floating point comparisons
 ```
 
 ### Step 2: Configure System
@@ -162,6 +162,8 @@ python3 hardware/led_controller.py --blink blue
 ✅ **Environment Fallback**: Built-in default values ensure system works without config files
 ✅ **Dependency Checking**: Startup validation ensures all required dependencies are available
 ✅ **Health Aggregation**: Unified system status reporting for comprehensive monitoring
+✅ **BC Dependency Removal**: Successfully removed bc dependency using awk for floating point comparisons
+✅ **Temperature Precision**: Unified decimal point precision across all monitoring components
 ✅ **Production Ready**: Stable 30-second monitoring cycles with automatic recovery
 
 ### Service Management
@@ -193,6 +195,15 @@ The system provides **unified health status reporting** that aggregates all moni
 - **Component Coverage**: Network, CPU, Memory, Disk, CPU Temperature, Hardware Sensor
 - **Reporting**: Clear identification of problematic components in warning/error states
 
+#### 📊 BC Dependency Removal
+The system has been **optimized to remove external bc dependency**:
+- **Replacement Technology**: Using awk for floating point comparisons instead of bc
+- **Benefits**: Reduced external dependencies, improved system reliability
+- **Implementation**: All floating point comparisons now use `awk "BEGIN {print ($var >= $threshold)}"`
+- **Compatibility**: awk is a standard utility available on all systems
+- **Performance**: Faster execution with built-in tools
+- **Maintenance**: Reduced system complexity and dependency management
+
 #### 📝 Configuration Options
 Edit `config/health-monitor.env` to customize monitoring behavior:
 
@@ -208,8 +219,8 @@ MEM_AVAIL_WARN_PCT=15                # Memory warning (% available)
 MEM_AVAIL_ERROR_PCT=5                 # Memory error (% available)
 DISK_USED_WARN_PCT=80                # Disk usage warning (%)
 DISK_USED_ERROR_PCT=90                # Disk usage error (%)
-CPU_TEMP_WARN=65                     # CPU temperature warning (°C)
-CPU_TEMP_ERROR=75                    # CPU temperature error (°C)
+CPU_TEMP_WARN=65.0                    # CPU temperature warning (°C)
+CPU_TEMP_ERROR=75.0                   # CPU temperature error (°C)
 
 # Hardware thresholds
 TEMP_WARNING=40.0                    # Temperature warning (°C)
@@ -225,26 +236,6 @@ NETWORK_LATENCY_WARN_MS=200          # Network latency warning (ms)
 NETWORK_LATENCY_ERROR_MS=500         # Network latency error (ms)
 NETWORK_PACKET_LOSS_WARN_PCT=10      # Packet loss warning (%)
 NETWORK_PACKET_LOSS_ERROR_PCT=30     # Packet loss error (%)
-```
-
-#### 🔧 Quick Start
-```bash
-# Option 1: Use template (recommended)
-cp config/health-monitor.env.example config/health-monitor.env
-vim config/health-monitor.env
-
-# Option 2: Use built-in defaults (no config needed)
-# System will work immediately with default values
-```
-
-# Import Strategy
-Control hardware module import behavior:
-
-# Use absolute import (recommended)
-USE_RELATIVE_IMPORT=false
-
-# Use relative import (legacy)
-# USE_RELATIVE_IMPORT=true
 ```
 
 ## 📈 LED Status Indicators
@@ -292,23 +283,16 @@ TrustMonitor demonstrates key BMC/ROT concepts in an accessible way:
 
 ## 📋 Version Information
 
-**Current Version**: v1.1.3 (Phase 1 Refactoring - Health Aggregation)
+**Current Version**: v1.1.4 (Phase 1 Refactoring - Remove bc dependency)
 
 ### Version History
+- **v1.1.4**: Phase 1 Refactoring - Remove bc dependency using awk for floating point comparisons
 - **v1.1.3**: Phase 1 Refactoring - Overall health aggregation system
 - **v1.1.2**: Phase 1 Refactoring - Environment fallback and dependency checking
 - **v1.1.1**: Enhanced reliability with environment variable fallback mechanism
 - **v1.1.0**: Phase 1 Complete - Hardware integration and system monitoring with full test validation
 - **v1.0.0**: Initial release with basic monitoring capabilities
 
-### Phase 1 Achievements
-- ✅ Complete system monitoring (CPU, memory, disk, network, temperature)
-- ✅ Hardware integration (DHT11 sensor and RGB LED)
-- ✅ Professional service management (systemd with journald logging)
-- ✅ Environment fallback mechanism (built-in default values for reliability)
-- ✅ Dependency checking (startup validation of required dependencies)
-- ✅ Overall health aggregation (unified system status reporting)
-- ✅ Production-ready stability and reliability
 
 ### Known Limitations
 - ⚠️ **LED Visibility**: LED indicators display briefly during checks and may be difficult to observe

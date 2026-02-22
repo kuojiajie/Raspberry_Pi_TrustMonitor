@@ -21,8 +21,8 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 # Set temperature thresholds
-CPU_TEMP_WARN=${CPU_TEMP_WARN:-65}
-CPU_TEMP_ERROR=${CPU_TEMP_ERROR:-75}
+CPU_TEMP_WARN=${CPU_TEMP_WARN:-65.0}
+CPU_TEMP_ERROR=${CPU_TEMP_ERROR:-75.0}
 
 # Utility functions
 log_info() {
@@ -43,7 +43,8 @@ read_cpu_temp() {
     if [[ -f "$temp_file" ]]; then
         local temp_raw
         temp_raw=$(cat "$temp_file")
-        echo "$((temp_raw / 1000))"
+        # Use awk for floating point division, then round to 1 decimal place
+        awk "BEGIN {printf \"%.1f\", $temp_raw / 1000}"
     else
         echo "0"
     fi
@@ -55,17 +56,27 @@ cpu_temp_check() {
     
     cpu_temp=$(read_cpu_temp)
     
-    # Check temperature range
-    if [[ $cpu_temp -ge $CPU_TEMP_ERROR ]]; then
-        log_error "CPU temperature too high: ${cpu_temp}°C (error threshold: ${CPU_TEMP_ERROR}°C)"
-        return 2
-    elif [[ $cpu_temp -ge $CPU_TEMP_WARN ]]; then
-        log_warn "CPU temperature high: ${cpu_temp}°C (warning threshold: ${CPU_TEMP_WARN}°C)"
-        return 1
-    else
-        log_info "CPU temperature normal: ${cpu_temp}°C"
-        return 0
-    fi
+    # Convert thresholds to float for comparison
+    local warn_float=$(awk "BEGIN {printf \"%.1f\", $CPU_TEMP_WARN}")
+    local error_float=$(awk "BEGIN {printf \"%.1f\", $CPU_TEMP_ERROR}")
+    
+    # Check temperature range using awk for floating point comparison
+    local comparison_result=$(awk "BEGIN {print ($cpu_temp >= $error_float) ? 2 : (($cpu_temp >= $warn_float) ? 1 : 0)}")
+    
+    case "$comparison_result" in
+        2) 
+            log_error "CPU temperature too high: ${cpu_temp}°C (error threshold: ${CPU_TEMP_ERROR}°C)"
+            return 2
+            ;;
+        1) 
+            log_warn "CPU temperature high: ${cpu_temp}°C (warning threshold: ${CPU_TEMP_WARN}°C)"
+            return 1
+            ;;
+        *) 
+            log_info "CPU temperature normal: ${cpu_temp}°C"
+            return 0
+            ;;
+    esac
 }
 
 # Provide temperature value for other scripts

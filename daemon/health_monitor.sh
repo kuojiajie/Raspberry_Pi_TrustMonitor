@@ -21,8 +21,8 @@ fi
 : "${MEM_AVAIL_ERROR_PCT:=5}"
 : "${DISK_USED_WARN_PCT:=80}"
 : "${DISK_USED_ERROR_PCT:=90}"
-: "${CPU_TEMP_WARN:=65}"
-: "${CPU_TEMP_ERROR:=75}"
+: "${CPU_TEMP_WARN:=65.0}"
+: "${CPU_TEMP_ERROR:=75.0}"
 : "${NETWORK_LATENCY_WARN_MS:=200}"
 : "${NETWORK_LATENCY_ERROR_MS:=500}"
 : "${NETWORK_PACKET_LOSS_WARN_PCT:=10}"
@@ -42,7 +42,7 @@ check_dependencies() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Checking system dependencies..."
     
     # Check system commands
-    local system_commands=("bc" "python3" "pip3")
+    local system_commands=("python3" "pip3")
     for cmd in "${system_commands[@]}"; do
         if ! command -v "$cmd" &> /dev/null; then
             missing_deps+=("$cmd")

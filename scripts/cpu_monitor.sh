@@ -36,11 +36,11 @@ cpu_check() {
     err="${CPU_LOAD_ERROR:-3.00}"
     
     # Compare with thresholds
-    if (( $(echo "$load1 >= $err" | bc -l) )); then
+    if (( $(awk "BEGIN {print ($load1 >= $err)}") )); then
         log_error "CPU load critical: $load1"
         echo "CPU CRITICAL (load1=$load1)"
         return 2
-    elif (( $(echo "$load1 >= $warn" | bc -l) )); then
+    elif (( $(awk "BEGIN {print ($load1 >= $warn)}") )); then
         log_warn "CPU load warning: $load1"
         echo "CPU WARN (load1=$load1)"
         return 1

@@ -65,13 +65,13 @@ network_error_type() {
     fi
     
     # Check high latency
-    if (( $(echo "$latency >= $err_latency" | bc -l 2>/dev/null || echo "0") )); then
+    if (( $(awk "BEGIN {print ($latency >= $err_latency)}") )); then
         echo "high_latency"
         return
     fi
     
     # Check high packet loss
-    if (( $(echo "$loss >= $err_loss" | bc -l 2>/dev/null || echo "0") )); then
+    if (( $(awk "BEGIN {print ($loss >= $err_loss)}") )); then
         echo "high_packet_loss"
         return
     fi
@@ -98,23 +98,23 @@ network_check() {
     fi
     
     # Check high latency
-    if (( $(echo "$latency >= $err_latency" | bc -l 2>/dev/null || echo "0") )); then
+    if (( $(awk "BEGIN {print ($latency >= $err_latency)}") )); then
         log_error "Network latency too high: ${latency}ms (error threshold: ${err_latency}ms)"
         return 2
     fi
     
-    if (( $(echo "$latency >= $warn_latency" | bc -l 2>/dev/null || echo "0") )); then
+    if (( $(awk "BEGIN {print ($latency >= $warn_latency)}") )); then
         log_warn "Network latency high: ${latency}ms (warning threshold: ${warn_latency}ms)"
         return 1
     fi
     
     # Check high packet loss
-    if (( $(echo "$loss >= $err_loss" | bc -l 2>/dev/null || echo "0") )); then
+    if (( $(awk "BEGIN {print ($loss >= $err_loss)}") )); then
         log_error "Network packet loss too high: ${loss}% (error threshold: ${err_loss}%)"
         return 2
     fi
     
-    if (( $(echo "$loss >= $warn_loss" | bc -l 2>/dev/null || echo "0") )); then
+    if (( $(awk "BEGIN {print ($loss >= $warn_loss)}") )); then
         log_warn "Network packet loss high: ${loss}% (warning threshold: ${warn_loss}%)"
         return 1
     fi
