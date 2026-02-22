@@ -48,7 +48,7 @@ TrustMonitor transforms a Raspberry Pi into a miniature BMC/ROT system that:
 - **Integration Testing**: Complete system integration validated
 - **Performance Testing**: CPU and memory usage optimized
 
-### Hardware Setup
+### 7. Hardware Setup
 - **DHT11 Sensor**: Connect to GPIO 17 for temperature/humidity monitoring
 - **RGB LED**: Connect to GPIO 27 (Red), GPIO 22 (Green), GPIO 5 (Blue)
 - **Power**: Ensure stable power supply for reliable sensor readings
@@ -161,6 +161,7 @@ python3 hardware/led_controller.py --blink blue
 ✅ **Service Integration**: Automatic startup and systemd integration verified
 ✅ **Environment Fallback**: Built-in default values ensure system works without config files
 ✅ **Dependency Checking**: Startup validation ensures all required dependencies are available
+✅ **Health Aggregation**: Unified system status reporting for comprehensive monitoring
 ✅ **Production Ready**: Stable 30-second monitoring cycles with automatic recovery
 
 ### Service Management
@@ -184,6 +185,13 @@ The system uses **environment variables with built-in fallback values** for maxi
 - **Primary**: Values from `config/health-monitor.env` (if exists)
 - **Fallback**: Built-in default values (always available)
 - **Result**: System works even without configuration file
+
+#### 📊 Health Aggregation
+The system provides **unified health status reporting** that aggregates all monitoring components:
+- **Overall Status**: Single health indicator based on worst component status
+- **Status Levels**: OK (all normal), WARNING (issues detected), ERROR (critical problems)
+- **Component Coverage**: Network, CPU, Memory, Disk, CPU Temperature, Hardware Sensor
+- **Reporting**: Clear identification of problematic components in warning/error states
 
 #### 📝 Configuration Options
 Edit `config/health-monitor.env` to customize monitoring behavior:
@@ -284,9 +292,10 @@ TrustMonitor demonstrates key BMC/ROT concepts in an accessible way:
 
 ## 📋 Version Information
 
-**Current Version**: v1.1.2 (Phase 1 Refactoring - Enhanced Reliability)
+**Current Version**: v1.1.3 (Phase 1 Refactoring - Health Aggregation)
 
 ### Version History
+- **v1.1.3**: Phase 1 Refactoring - Overall health aggregation system
 - **v1.1.2**: Phase 1 Refactoring - Environment fallback and dependency checking
 - **v1.1.1**: Enhanced reliability with environment variable fallback mechanism
 - **v1.1.0**: Phase 1 Complete - Hardware integration and system monitoring with full test validation
@@ -298,6 +307,7 @@ TrustMonitor demonstrates key BMC/ROT concepts in an accessible way:
 - ✅ Professional service management (systemd with journald logging)
 - ✅ Environment fallback mechanism (built-in default values for reliability)
 - ✅ Dependency checking (startup validation of required dependencies)
+- ✅ Overall health aggregation (unified system status reporting)
 - ✅ Production-ready stability and reliability
 
 ### Known Limitations

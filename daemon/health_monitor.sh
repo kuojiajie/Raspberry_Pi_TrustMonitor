@@ -89,6 +89,72 @@ check_dependencies() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] All required dependencies available"
 }
 
+# Overall health aggregation
+aggregate_health_status() {
+    local network_status="$1"
+    local cpu_status="$2"
+    local memory_status="$3"
+    local disk_status="$4"
+    local temp_status="$5"
+    local sensor_status="$6"
+    
+    local overall_status=0
+    local components=()
+    local warnings=()
+    local errors=()
+    
+    # Aggregate component statuses
+    components+=("network:$network_status")
+    components+=("cpu:$cpu_status")
+    components+=("memory:$memory_status")
+    components+=("disk:$disk_status")
+    components+=("cpu_temp:$temp_status")
+    
+    # Handle sensor status if available
+    if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
+        components+=("sensor:$sensor_status")
+    fi
+    
+    # Determine overall status (worst status wins)
+    for component in "${components[@]}"; do
+        local name="${component%:*}"
+        local status="${component#*:}"
+        
+        case "$status" in
+            0) ;;  # OK, no action needed
+            1) 
+                warnings+=("$name")
+                if [[ $overall_status -lt 1 ]]; then
+                    overall_status=1
+                fi
+                ;;
+            2) 
+                errors+=("$name")
+                overall_status=2
+                ;;
+            *) 
+                errors+=("$name")
+                overall_status=2
+                ;;
+        esac
+    done
+    
+    # Output overall health status
+    case "$overall_status" in
+        0) 
+            log_info "OVERALL HEALTH: OK - All systems operational"
+            ;;
+        1) 
+            log_warn "OVERALL HEALTH: WARNING - Issues detected in: ${warnings[*]}"
+            ;;
+        2) 
+            log_error "OVERALL HEALTH: ERROR - Critical issues in: ${errors[*]}"
+            ;;
+    esac
+    
+    return $overall_status
+}
+
 # Load monitoring modules
 source "$BASE_DIR/lib/logger.sh"
 source "$BASE_DIR/scripts/network_monitor.sh"
@@ -226,6 +292,13 @@ while true; do
     esac
   else
     log_warn "Sensor UNAVAILABLE (Script not found)"
+  fi
+
+  # --- Overall Health Aggregation ---
+  if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
+    aggregate_health_status "$network_rc" "$cpu_rc" "$mem_rc" "$disk_rc" "$temp_rc" "$sensor_rc"
+  else
+    aggregate_health_status "$network_rc" "$cpu_rc" "$mem_rc" "$disk_rc" "$temp_rc" "0"
   fi
 
   sleep "$CHECK_INTERVAL"
