@@ -190,6 +190,20 @@ log_info "Health monitor started"
 # Display loaded plugins
 plugin_system_info
 
+# --- Secure Boot Sequence (Phase 2 ROT Security) ---
+log_info "Starting Secure Boot sequence..."
+source "$BASE_DIR/scripts/boot_sequence.sh"
+
+# Execute boot sequence check
+if ! boot_sequence_check; then
+    log_error "Secure Boot sequence failed - system halted"
+    # boot_sequence_check should never return on failure (infinite loop)
+    # But if it does, we exit with error
+    exit 2
+fi
+
+log_info "Secure Boot sequence completed successfully - entering monitoring loop"
+
 while true; do
   # Crash simulation hook (for restart testing)
   if [[ "${FORCE_CRASH:-0}" == "1" ]]; then
@@ -200,10 +214,12 @@ while true; do
   # --- Plugin-based Monitoring ---
   declare -A plugin_results
   
-  # Execute all loaded plugins
+  # Execute all loaded plugins except boot_sequence (handled separately)
   for plugin_name in $(get_loaded_plugins); do
-    execute_plugin_check "$plugin_name"
-    plugin_results["$plugin_name"]=$?
+    if [[ "$plugin_name" != "boot_sequence" ]]; then
+      execute_plugin_check "$plugin_name"
+      plugin_results["$plugin_name"]=$?
+    fi
   done
   
   # Extract results for aggregation

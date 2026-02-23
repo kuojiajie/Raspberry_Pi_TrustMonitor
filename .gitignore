@@ -57,3 +57,6 @@ hardware/__pycache__/
 # Plugin system test files
 *.test.log
 health_monitor_*.log
+
+# Phase 2: ROT Security - Generated files (do not commit)
+manifest.sha256
