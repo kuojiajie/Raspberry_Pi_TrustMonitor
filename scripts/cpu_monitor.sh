@@ -1,37 +1,26 @@
 #!/bin/bash
-# CPU Load Monitoring Script
-# =========================
-# Purpose: Monitor system CPU load
+# CPU Monitoring Plugin
+# =====================
+# Purpose: Monitor CPU load
 # Returns: 0=OK, 1=WARN, 2=ERROR
 
 set -u
 
-# Global variables
-SCRIPT_NAME="CPU Monitor"
-
-# Utility functions
-log_info() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] $SCRIPT_NAME: $1"
-}
-
-log_warn() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARN] $SCRIPT_NAME: $1" >&2
-}
-
-log_error() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] $SCRIPT_NAME: $1" >&2
+# Plugin metadata
+cpu_monitor_description() {
+    echo "Monitors CPU load with configurable warning and error thresholds"
 }
 
 # CPU load reading function
-cpu_load1() {
+cpu_monitor_load1() {
     awk '{print $1}' /proc/loadavg
 }
 
-# CPU load check function
-cpu_check() {
+# CPU load check function (plugin interface)
+cpu_monitor_check() {
     local load1 warn err
     
-    load1="$(cpu_load1)"
+    load1="$(cpu_monitor_load1)"
     warn="${CPU_LOAD_WARN:-2.00}"
     err="${CPU_LOAD_ERROR:-3.00}"
     
@@ -51,8 +40,24 @@ cpu_check() {
     fi
 }
 
-# Main execution logic
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    cpu_check
-    exit $?
+# Main execution
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # Load environment variables for standalone execution
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+    
+    # Load environment variables (if exists)
+    ENV_FILE="$BASE_DIR/config/health-monitor.env"
+    if [[ -f "$ENV_FILE" ]]; then
+        # shellcheck disable=SC1090
+        source "$ENV_FILE"
+    fi
+    
+    # Load logger for standalone execution
+    source "$BASE_DIR/lib/logger.sh"
+    
+    cpu_monitor_check
+    rc=$?
+    echo "CPU load: $(cpu_monitor_load1) status code: $rc"
+    exit $rc
 fi

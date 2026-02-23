@@ -155,13 +155,13 @@ aggregate_health_status() {
     return $overall_status
 }
 
-# Load monitoring modules
+# Load monitoring modules using plugin system
 source "$BASE_DIR/lib/logger.sh"
-source "$BASE_DIR/scripts/network_monitor.sh"
-source "$BASE_DIR/scripts/cpu_monitor.sh"
-source "$BASE_DIR/scripts/memory_monitor.sh"
-source "$BASE_DIR/scripts/disk_monitor.sh"
-source "$BASE_DIR/scripts/cpu_temp_monitor.sh"
+source "$BASE_DIR/lib/plugin_loader.sh"
+
+# Auto-load all monitoring plugins
+PLUGIN_DIR="$BASE_DIR/scripts"
+load_plugins_from_dir "$PLUGIN_DIR"
 
 # Load hardware sensor modules (if available)
 SENSOR_SCRIPT="$BASE_DIR/hardware/sensor_monitor.py"
@@ -187,6 +187,9 @@ check_dependencies
 
 log_info "Health monitor started"
 
+# Display loaded plugins
+plugin_system_info
+
 while true; do
   # Crash simulation hook (for restart testing)
   if [[ "${FORCE_CRASH:-0}" == "1" ]]; then
@@ -194,79 +197,88 @@ while true; do
     exit 1
   fi
 
-  # --- Network ---
-  network_rc=0
-  network_check || network_rc=$?
-  latency=$(network_latency_ms)
-  packet_loss=$(network_packet_loss_pct)
-
-  case "$network_rc" in
-    0) log_info  "Network OK (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
-    1) log_warn  "Network WARN (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
-    2) 
-      # Use error type function provided by network_check
-      error_type=$(network_error_type)
-      case "$error_type" in
-        "connection_failed")
-          log_error "Network ERROR (target=$PING_TARGET connection failed)" ;;
-        "high_latency")
-          log_error "Network ERROR (target=$PING_TARGET high latency=${latency}ms)" ;;
-        "high_packet_loss")
-          log_error "Network ERROR (target=$PING_TARGET high packet loss=${packet_loss}%)" ;;
-        *)
-          log_error "Network ERROR (target=$PING_TARGET unknown error)" ;;
-      esac
-      ;;
-    *) log_error "Network UNKNOWN (rc=$network_rc target=$PING_TARGET)" ;;
-  esac
-
+  # --- Plugin-based Monitoring ---
+  declare -A plugin_results
+  
+  # Execute all loaded plugins
+  for plugin_name in $(get_loaded_plugins); do
+    execute_plugin_check "$plugin_name"
+    plugin_results["$plugin_name"]=$?
+  done
+  
+  # Extract results for aggregation
+  network_rc=${plugin_results["network_monitor"]:-0}
+  cpu_rc=${plugin_results["cpu_monitor"]:-0}
+  memory_rc=${plugin_results["memory_monitor"]:-0}
+  disk_rc=${plugin_results["disk_monitor"]:-0}
+  temp_rc=${plugin_results["cpu_temp_monitor"]:-0}
+  
+  # Get detailed information for logging
+  if is_plugin_loaded "network_monitor"; then
+    latency=$(network_monitor_latency_ms)
+    packet_loss=$(network_monitor_packet_loss_pct)
+    case "$network_rc" in
+      0) log_info  "Network OK (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
+      1) log_warn  "Network WARN (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
+      2) 
+        error_type=$(network_monitor_error_type)
+        case "$error_type" in
+          "connection_failed")
+            log_error "Network ERROR (target=$PING_TARGET connection failed)" ;;
+          "high_latency")
+            log_error "Network ERROR (target=$PING_TARGET high latency=${latency}ms)" ;;
+          "high_packet_loss")
+            log_error "Network ERROR (target=$PING_TARGET high packet loss=${packet_loss}%)" ;;
+          *)
+            log_error "Network ERROR (target=$PING_TARGET unknown error)" ;;
+        esac
+        ;;
+    esac
+  fi
+  
   # --- CPU ---
-  cpu_rc=0
-  cpu_check || cpu_rc=$?
-  load1="$(cpu_load1)"
-
-  case "$cpu_rc" in
-    0) log_info  "CPU OK (load1=$load1)" ;;
-    1) log_warn  "CPU WARN (load1=$load1 warn>=$CPU_LOAD_WARN)" ;;
-    2) log_error "CPU ERROR (load1=$load1 error>=$CPU_LOAD_ERROR)" ;;
-    *) log_error "CPU UNKNOWN (rc=$cpu_rc load1=$load1)" ;;
-  esac
+  if is_plugin_loaded "cpu_monitor"; then
+    load1=$(cpu_monitor_load1)
+    case "$cpu_rc" in
+      0) log_info  "CPU OK (load1=$load1)" ;;
+      1) log_warn  "CPU WARN (load1=$load1 warn>=$CPU_LOAD_WARN)" ;;
+      2) log_error "CPU ERROR (load1=$load1 error>=$CPU_LOAD_ERROR)" ;;
+      *) log_error "CPU UNKNOWN (rc=$cpu_rc load1=$load1)" ;;
+    esac
+  fi
 
   # --- Memory ---
-  mem_rc=0
-  memory_check || mem_rc=$?
-  avail_pct="$(mem_avail_pct)"
-
-  case "$mem_rc" in
-    0) log_info  "Memory OK (avail=${avail_pct}%)" ;;
-    1) log_warn  "Memory WARN (avail=${avail_pct}% warn<=${MEM_AVAIL_WARN_PCT}%)" ;;
-    2) log_error "Memory ERROR (avail=${avail_pct}% error<=${MEM_AVAIL_ERROR_PCT}%)" ;;
-    *) log_error "Memory UNKNOWN (rc=$mem_rc avail=${avail_pct}%)" ;;
-  esac
+  if is_plugin_loaded "memory_monitor"; then
+    avail_pct="$(memory_monitor_avail_pct)"
+    case "$memory_rc" in
+      0) log_info  "Memory OK (avail=${avail_pct}%)" ;;
+      1) log_warn  "Memory WARN (avail=${avail_pct}% warn<=${MEM_AVAIL_WARN_PCT}%)" ;;
+      2) log_error "Memory ERROR (avail=${avail_pct}% error<=${MEM_AVAIL_ERROR_PCT}%)" ;;
+      *) log_error "Memory UNKNOWN (rc=$memory_rc avail=${avail_pct}%)" ;;
+    esac
+  fi
 
   # --- Disk ---
-  disk_rc=0
-  disk_check "/" || disk_rc=$?
-  disk_used="$(disk_used_pct "/")"
-
-  case "$disk_rc" in
-    0) log_info  "Disk OK (used=${disk_used}%)" ;;
-    1) log_warn  "Disk WARN (used=${disk_used}% warn>=${DISK_USED_WARN_PCT}%)" ;;
-    2) log_error "Disk ERROR (used=${disk_used}% error>=${DISK_USED_ERROR_PCT}%)" ;;
-    *) log_error "Disk UNKNOWN (rc=$disk_rc used=${disk_used}%)" ;;
-  esac
+  if is_plugin_loaded "disk_monitor"; then
+    disk_used="$(disk_monitor_used_pct "/")"
+    case "$disk_rc" in
+      0) log_info  "Disk OK (used=${disk_used}%)" ;;
+      1) log_warn  "Disk WARN (used=${disk_used}% warn>=${DISK_USED_WARN_PCT}%)" ;;
+      2) log_error "Disk ERROR (used=${disk_used}% error>=${DISK_USED_ERROR_PCT}%)" ;;
+      *) log_error "Disk UNKNOWN (rc=$disk_rc used=${disk_used}%)" ;;
+    esac
+  fi
 
   # --- CPU Temperature ---
-  temp_rc=0
-  cpu_temp_check || temp_rc=$?
-  cpu_temp=$(cpu_temp_value)
-
-  case "$temp_rc" in
-    0) log_info  "CPU Temperature OK (temp=${cpu_temp}°C)" ;;
-    1) log_warn  "CPU Temperature WARN (temp=${cpu_temp}°C warn>=${CPU_TEMP_WARN}°C)" ;;
-    2) log_error "CPU Temperature ERROR (temp=${cpu_temp}°C error>=${CPU_TEMP_ERROR}°C)" ;;
-    *) log_error "CPU Temperature UNKNOWN (rc=$temp_rc temp=${cpu_temp}°C)" ;;
-  esac
+  if is_plugin_loaded "cpu_temp_monitor"; then
+    cpu_temp=$(cpu_temp_monitor_value)
+    case "$temp_rc" in
+      0) log_info  "CPU Temperature OK (temp=${cpu_temp}°C)" ;;
+      1) log_warn  "CPU Temperature WARN (temp=${cpu_temp}°C warn>=${CPU_TEMP_WARN}°C)" ;;
+      2) log_error "CPU Temperature ERROR (temp=${cpu_temp}°C error>=${CPU_TEMP_ERROR}°C)" ;;
+      *) log_error "CPU Temperature UNKNOWN (rc=$temp_rc temp=${cpu_temp}°C)" ;;
+    esac
+  fi
 
   # --- Sensor Monitoring ---
   if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
@@ -296,9 +308,9 @@ while true; do
 
   # --- Overall Health Aggregation ---
   if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
-    aggregate_health_status "$network_rc" "$cpu_rc" "$mem_rc" "$disk_rc" "$temp_rc" "$sensor_rc"
+    aggregate_health_status "$network_rc" "$cpu_rc" "$memory_rc" "$disk_rc" "$temp_rc" "$sensor_rc"
   else
-    aggregate_health_status "$network_rc" "$cpu_rc" "$mem_rc" "$disk_rc" "$temp_rc" "0"
+    aggregate_health_status "$network_rc" "$cpu_rc" "$memory_rc" "$disk_rc" "$temp_rc" "0"
   fi
 
   sleep "$CHECK_INTERVAL"

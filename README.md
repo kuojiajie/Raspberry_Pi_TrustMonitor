@@ -35,6 +35,8 @@ TrustMonitor transforms a Raspberry Pi into a miniature BMC/ROT system that:
 - **Hardware Abstraction**: Isolated hardware modules for easy testing
 - **Service Integration**: Native systemd integration with journald logging
 - **Configuration Management**: Environment-based configuration system
+- **Plugin Auto-Load**: Dynamic plugin discovery and loading system
+- **Standardized Interface**: Unified plugin interface with check and description functions
 
 ### 5. Internationalization & Professional Code
 - **English Documentation**: All code comments, logs, and documentation in English
@@ -67,14 +69,15 @@ Raspberry_Pi_TrustMonitor/
 │   ├── sensor_monitor.py             # Integrated sensor monitoring
 │   └── sensor_reader.py              # DHT11 sensor interface
 ├── lib
-│   └── logger.sh                      # Logging utilities
+│   ├── logger.sh                      # Logging utilities
+│   └── plugin_loader.sh               # Plugin auto-loading system
 ├── logs                               # Log directory (currently uses journald)
 ├── scripts
-│   ├── cpu_monitor.sh                 # CPU load monitoring
-│   ├── cpu_temp_monitor.sh           # CPU temperature monitoring
-│   ├── disk_monitor.sh                # Disk usage monitoring
-│   ├── memory_monitor.sh              # Memory usage monitoring
-│   └── network_monitor.sh             # Network connectivity monitoring
+│   ├── cpu_monitor.sh                 # CPU load monitoring plugin
+│   ├── cpu_temp_monitor.sh           # CPU temperature monitoring plugin
+│   ├── disk_monitor.sh                # Disk usage monitoring plugin
+│   ├── memory_monitor.sh              # Memory usage monitoring plugin
+│   └── network_monitor.sh             # Network connectivity monitoring plugin
 ├── systemd
 │   └── health-monitor.service.example  # Service configuration template
 └── tools
@@ -164,7 +167,10 @@ python3 hardware/led_controller.py --blink blue
 ✅ **Health Aggregation**: Unified system status reporting for comprehensive monitoring
 ✅ **BC Dependency Removal**: Successfully removed bc dependency using awk for floating point comparisons
 ✅ **Temperature Precision**: Unified decimal point precision across all monitoring components
-✅ **Production Ready**: Stable 30-second monitoring cycles with automatic recovery
+✅ **Plugin Auto-Load System**: Dynamic plugin discovery and loading with standardized interface
+✅ **Plugin Testing**: All 5 monitoring plugins successfully converted and tested
+✅ **Logging System**: Unified logging with plugin-specific context and conflict resolution
+✅ **Production Ready**: Stable 46-second monitoring cycles with automatic recovery
 
 ### Service Management
 ```bash
@@ -187,6 +193,15 @@ The system uses **environment variables with built-in fallback values** for maxi
 - **Primary**: Values from `config/health-monitor.env` (if exists)
 - **Fallback**: Built-in default values (always available)
 - **Result**: System works even without configuration file
+
+#### 📊 Plugin Auto-Load System
+The system features a **modern plugin auto-loading architecture** for enhanced modularity:
+- **Dynamic Discovery**: Automatically discovers and loads all `.sh` scripts in the `scripts/` directory
+- **Standardized Interface**: All plugins implement `*_check()` and `*_description()` functions
+- **Unified Logging**: Plugin-specific logging functions with clear context attribution
+- **Return Codes**: Standardized return codes (0=OK, 1=WARN, 2=ERROR) for consistent status reporting
+- **Extensibility**: New monitoring scripts can be added without modifying the main daemon
+- **Isolation**: Each plugin operates independently with proper error handling
 
 #### 📊 Health Aggregation
 The system provides **unified health status reporting** that aggregates all monitoring components:
@@ -245,7 +260,7 @@ The RGB LED provides visual feedback about system health:
 - **🔴 Red**: Error conditions detected (temp > 45°C or humidity > 80% or sensor failure)
 - **⚫ Off**: System startup, shutdown, or hardware failure
 
-> **Note**: LED indicators are triggered briefly during system checks (every 30 seconds) and may be difficult to observe due to the short display duration. This is a known limitation and will be addressed in a future branch.
+> **Note**: LED indicators are triggered briefly during system checks (every 46 seconds) and may be difficult to observe due to the short display duration. This is a known limitation and will be addressed in a future branch.
 
 ## 🔄 Status Logic
 ```bash
@@ -283,9 +298,10 @@ TrustMonitor demonstrates key BMC/ROT concepts in an accessible way:
 
 ## 📋 Version Information
 
-**Current Version**: v1.1.4 (Phase 1 Refactoring - Remove bc dependency)
+**Current Version**: v1.1.5 (Phase 1 Refactoring - Plugin Auto-Load System)
 
 ### Version History
+- **v1.1.5**: Phase 1 Refactoring - Plugin Auto-Load System with dynamic plugin discovery and loading
 - **v1.1.4**: Phase 1 Refactoring - Remove bc dependency using awk for floating point comparisons
 - **v1.1.3**: Phase 1 Refactoring - Overall health aggregation system
 - **v1.1.2**: Phase 1 Refactoring - Environment fallback and dependency checking

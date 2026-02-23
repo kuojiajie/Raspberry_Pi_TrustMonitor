@@ -1,53 +1,31 @@
 #!/bin/bash
-# Network Monitoring Script
-# =================
+# Network Monitoring Plugin
+# ========================
 # Purpose: Monitor network connectivity quality
 # Returns: 0=OK, 1=WARN, 2=ERROR
 
 set -u
 
-# Load environment variables
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-# Load environment variables (if exists)
-ENV_FILE="$BASE_DIR/config/health-monitor.env"
-if [[ -f "$ENV_FILE" ]]; then
-    # shellcheck disable=SC1090
-    source "$ENV_FILE"
-fi
-
-# Global variables
-SCRIPT_NAME="Network Monitor"
-
-# Utility functions
-log_info() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] $SCRIPT_NAME: $1"
-}
-
-log_warn() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARN] $SCRIPT_NAME: $1" >&2
-}
-
-log_error() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] $SCRIPT_NAME: $1" >&2
+# Plugin metadata
+network_monitor_description() {
+    echo "Monitors network connectivity quality with latency and packet loss checks"
 }
 
 # Network quality reading functions
-network_latency_ms() {
+network_monitor_latency_ms() {
     local latency
     latency="$(ping -c 3 "$PING_TARGET" 2>/dev/null | tail -1 | awk -F'/' '{print $5}')"
     echo "${latency:-0}"
 }
 
-network_packet_loss_pct() {
+network_monitor_packet_loss_pct() {
     local loss
     loss="$(ping -c 3 "$PING_TARGET" 2>/dev/null | grep 'packet loss' | awk -F'%' '{print $1}' | awk '{print $NF}')"
     echo "${loss:-0}"
 }
 
 # Network error type determination
-network_error_type() {
+network_monitor_error_type() {
     local latency loss warn_latency err_latency warn_loss err_loss
     
     warn_latency="${NETWORK_LATENCY_WARN_MS:-200}"
@@ -55,8 +33,8 @@ network_error_type() {
     warn_loss="${NETWORK_PACKET_LOSS_WARN_PCT:-10}"
     err_loss="${NETWORK_PACKET_LOSS_ERROR_PCT:-30}"
     
-    latency="$(network_latency_ms)"
-    loss="$(network_packet_loss_pct)"
+    latency="$(network_monitor_latency_ms)"
+    loss="$(network_monitor_packet_loss_pct)"
     
     # Check connection failure
     if [[ "$latency" == "0" && "$loss" == "0" ]]; then
@@ -79,8 +57,8 @@ network_error_type() {
     echo "unknown"
 }
 
-# Network check
-network_check() {
+# Network check function (plugin interface)
+network_monitor_check() {
     local latency loss warn_latency err_latency warn_loss err_loss
     
     warn_latency="${NETWORK_LATENCY_WARN_MS:-200}"
@@ -88,8 +66,8 @@ network_check() {
     warn_loss="${NETWORK_PACKET_LOSS_WARN_PCT:-10}"
     err_loss="${NETWORK_PACKET_LOSS_ERROR_PCT:-30}"
     
-    latency="$(network_latency_ms)"
-    loss="$(network_packet_loss_pct)"
+    latency="$(network_monitor_latency_ms)"
+    loss="$(network_monitor_packet_loss_pct)"
     
     # Check connection failure
     if [[ "$latency" == "0" && "$loss" == "0" ]]; then
@@ -125,11 +103,25 @@ network_check() {
 
 # Main execution
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    network_check
+    # Load environment variables for standalone execution
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+    
+    # Load environment variables (if exists)
+    ENV_FILE="$BASE_DIR/config/health-monitor.env"
+    if [[ -f "$ENV_FILE" ]]; then
+        # shellcheck disable=SC1090
+        source "$ENV_FILE"
+    fi
+    
+    # Load logger for standalone execution
+    source "$BASE_DIR/lib/logger.sh"
+    
+    network_monitor_check
     rc=$?
-    latency="$(network_latency_ms)"
-    loss="$(network_packet_loss_pct)"
-    error_type=$(network_error_type)
-    echo "Network latency: ${latency}ms, packet loss: ${loss}%, status code: $rc, error type: ${error_type}"
+    latency="$(network_monitor_latency_ms)"
+    loss="$(network_monitor_packet_loss_pct)"
+    error_type=$(network_monitor_error_type)
+    echo "Network latency: ${latency}ms, packet loss: ${loss}%, status code: $rc, error type: $error_type"
     exit $rc
 fi

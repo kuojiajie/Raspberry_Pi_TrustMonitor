@@ -1,78 +1,80 @@
 #!/bin/bash
-# Memory Monitoring Script
-# ===================
-# Purpose: Monitor system memory usage
+# Memory Monitoring Plugin
+# ========================
+# Purpose: Monitor memory availability
 # Returns: 0=OK, 1=WARN, 2=ERROR
 
 set -u
 
-# Global variables
-SCRIPT_NAME="Memory Monitor"
-
-# Utility functions
-log_info() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] $SCRIPT_NAME: $1"
-}
-
-log_warn() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARN] $SCRIPT_NAME: $1" >&2
-}
-
-log_error() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] $SCRIPT_NAME: $1" >&2
+# Plugin metadata
+memory_monitor_description() {
+    echo "Monitors memory availability with percentage-based thresholds"
 }
 
 # Memory reading functions
-mem_total_kb() {
+memory_monitor_total_kb() {
     awk '/^MemTotal:/ {print $2}' /proc/meminfo
 }
 
-mem_avail_kb() {
+memory_monitor_avail_kb() {
     awk '/^MemAvailable:/ {print $2}' /proc/meminfo
 }
 
-mem_avail_pct() {
+memory_monitor_avail_pct() {
     local total avail
     
-    total="$(mem_total_kb)"
-    avail="$(mem_avail_kb)"
+    total="$(memory_monitor_total_kb)"
+    avail="$(memory_monitor_avail_kb)"
     
-    # Sanity check
-    if [[ -z "$total" || "$total" -le 0 || -z "$avail" ]]; then
+    if [[ "$total" -gt 0 ]]; then
+        awk "BEGIN {printf \"%.1f\", ($avail/$total)*100}"
+    else
         echo "0"
-        return
     fi
-    
-    echo $(( avail * 100 / total ))
 }
 
-# Memory check
-memory_check() {
+# Memory check function (plugin interface)
+memory_monitor_check() {
     local warn_pct err_pct avail_pct
     
     warn_pct="${MEM_AVAIL_WARN_PCT:-15}"
     err_pct="${MEM_AVAIL_ERROR_PCT:-5}"
-    avail_pct="$(mem_avail_pct)"
+    avail_pct="$(memory_monitor_avail_pct)"
     
-    # Check memory availability
-    if (( avail_pct <= err_pct )); then
-        log_error "Memory availability too low: ${avail_pct}% (error threshold: ${err_pct}%)"
+    # Compare with thresholds
+    if (( $(awk "BEGIN {print ($avail_pct <= $err_pct)}") )); then
+        log_error "Memory availability critical: ${avail_pct}%"
+        echo "Memory CRITICAL (avail=${avail_pct}%)"
         return 2
-    fi
-    
-    if (( avail_pct <= warn_pct )); then
-        log_warn "Memory availability low: ${avail_pct}% (warning threshold: ${warn_pct}%)"
+    elif (( $(awk "BEGIN {print ($avail_pct <= $warn_pct)}") )); then
+        log_warn "Memory availability low: ${avail_pct}%"
+        echo "Memory WARN (avail=${avail_pct}%)"
         return 1
+    else
+        log_info "Memory availability normal: ${avail_pct}%"
+        echo "Memory OK (avail=${avail_pct}%)"
+        return 0
     fi
-    
-    log_info "Memory availability normal: ${avail_pct}%"
-    return 0
 }
 
 # Main execution
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    memory_check
+    # Load environment variables for standalone execution
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+    
+    # Load environment variables (if exists)
+    ENV_FILE="$BASE_DIR/config/health-monitor.env"
+    if [[ -f "$ENV_FILE" ]]; then
+        # shellcheck disable=SC1090
+        source "$ENV_FILE"
+    fi
+    
+    # Load logger for standalone execution
+    source "$BASE_DIR/lib/logger.sh"
+    
+    memory_monitor_check
     rc=$?
-    echo "Memory availability: $(mem_avail_pct)% status code: $rc"
+    echo "Memory availability: $(memory_monitor_avail_pct)% status code: $rc"
     exit $rc
 fi

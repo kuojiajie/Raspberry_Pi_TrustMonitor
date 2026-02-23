@@ -53,3 +53,7 @@ systemd/health-monitor.service
 
 # Hardware module cache
 hardware/__pycache__/
+
+# Plugin system test files
+*.test.log
+health_monitor_*.log

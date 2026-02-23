@@ -1,41 +1,30 @@
 #!/bin/bash
-# Disk Monitoring Script
-# =================
+# Disk Monitoring Plugin
+# ======================
 # Purpose: Monitor disk usage
 # Returns: 0=OK, 1=WARN, 2=ERROR
 
 set -u
 
-# Global variables
-SCRIPT_NAME="Disk Monitor"
-
-# Utility functions
-log_info() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] $SCRIPT_NAME: $1"
-}
-
-log_warn() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARN] $SCRIPT_NAME: $1" >&2
-}
-
-log_error() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] $SCRIPT_NAME: $1" >&2
+# Plugin metadata
+disk_monitor_description() {
+    echo "Monitors disk usage with configurable mount point and thresholds"
 }
 
 # Disk usage reading
-disk_used_pct() {
+disk_monitor_used_pct() {
     local mount_point="${1:-/}"
     df -P "$mount_point" | awk 'NR==2 {gsub(/%/,"",$5); print $5}'
 }
 
-# Disk check
-disk_check() {
+# Disk check function (plugin interface)
+disk_monitor_check() {
     local mount_point warn err used
     
     mount_point="${1:-/}"
     warn="${DISK_USED_WARN_PCT:-80}"
     err="${DISK_USED_ERROR_PCT:-90}"
-    used="$(disk_used_pct "$mount_point")"
+    used="$(disk_monitor_used_pct "$mount_point")"
     
     # Sanity check
     if [[ -z "$used" ]]; then
@@ -43,25 +32,40 @@ disk_check() {
         return 2
     fi
     
-    # Check disk usage
-    if (( used >= err )); then
-        log_error "Disk usage too high: ${used}% (error threshold: ${err}%)"
+    # Compare with thresholds
+    if (( $(awk "BEGIN {print ($used >= $err)}") )); then
+        log_error "Disk usage critical: ${used}%"
+        echo "Disk CRITICAL (used=${used}%)"
         return 2
-    fi
-    
-    if (( used >= warn )); then
-        log_warn "Disk usage high: ${used}% (warning threshold: ${warn}%)"
+    elif (( $(awk "BEGIN {print ($used >= $warn)}") )); then
+        log_warn "Disk usage high: ${used}%"
+        echo "Disk WARN (used=${used}%)"
         return 1
+    else
+        log_info "Disk usage normal: ${used}%"
+        echo "Disk OK (used=${used}%)"
+        return 0
     fi
-    
-    log_info "Disk usage normal: ${used}%"
-    return 0
 }
 
 # Main execution
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    disk_check "${1:-/}"
+    # Load environment variables for standalone execution
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+    
+    # Load environment variables (if exists)
+    ENV_FILE="$BASE_DIR/config/health-monitor.env"
+    if [[ -f "$ENV_FILE" ]]; then
+        # shellcheck disable=SC1090
+        source "$ENV_FILE"
+    fi
+    
+    # Load logger for standalone execution
+    source "$BASE_DIR/lib/logger.sh"
+    
+    disk_monitor_check "${1:-/}"
     rc=$?
-    echo "Disk usage: $(disk_used_pct "${1:-/}")% status code: $rc"
+    echo "Disk usage: $(disk_monitor_used_pct "${1:-/}")% status code: $rc"
     exit $rc
 fi
