@@ -77,12 +77,18 @@ backup/security_test_*
 
 # Phase 2: v2.2.3 - Runtime state files (do not commit)
 .last_integrity_check
+.last_shutdown
 
 # Demo and test artifacts
 *.demo.log
 demo_*.log
 attack_*.log
 restore_*.log
+test_*.log
+*_format_test.log
+*_test.log
+sigterm_test.log
+network_format_test.log
 
 # Phase 3: Return code constants (implementation files tracked, test outputs excluded)
 return_codes_test.log

@@ -58,7 +58,7 @@ show_usage() {
 }
 
 # Load backup manager
-source "$PROJECT_ROOT/lib/backup_manager.sh"
+source "$SCRIPT_DIR/../../lib/backup_manager.sh"
 
 # Create backup directory using unified backup system
 create_backup() {

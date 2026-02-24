@@ -65,13 +65,13 @@ demo_quick() {
     
     # Step 1: Show initial status
     log_header "Step 1: Initial System Status"
-    bash "$SCRIPT_DIR/attack.sh" --status
+    bash "$SCRIPT_DIR/../security/attack.sh" --status
     echo ""
     
     # Step 2: Launch attack
     log_header "Step 2: Launch Attack (Malicious Code Injection)"
     log_warning "Injecting backdoor into cpu_monitor.sh..."
-    bash "$SCRIPT_DIR/attack.sh" malicious_code
+    bash "$SCRIPT_DIR/../security/attack.sh" malicious_code
     echo ""
     
     # Step 3: Verify detection

@@ -43,6 +43,11 @@ set_led_color() {
     timeout 2 python3 "$BASE_DIR/hardware/led_controller.py" --color "$color" >/dev/null 2>&1 &
     local led_pid=$!
     
+    # Register hardware process if function exists (called from health_monitor.sh)
+    if declare -f register_hardware_process >/dev/null; then
+        register_hardware_process "$led_pid"
+    fi
+    
     # Wait for LED to be set or timeout
     wait $led_pid 2>/dev/null || true
     
@@ -57,6 +62,11 @@ blink_led_error() {
     # Use hardware LED controller for blinking in background
     timeout 10 python3 "$BASE_DIR/hardware/led_controller.py" --blink red --times "$times" >/dev/null 2>&1 &
     local blink_pid=$!
+    
+    # Register hardware process if function exists (called from health_monitor.sh)
+    if declare -f register_hardware_process >/dev/null; then
+        register_hardware_process "$blink_pid"
+    fi
     
     boot_sequence_log_info "LED blink sequence started in background"
     return 0

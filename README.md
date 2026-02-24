@@ -84,9 +84,13 @@ bash scripts/cpu_temp_monitor.sh
 bash scripts/integrity_check.sh          # Verify file integrity and signature
 bash scripts/verify_signature.sh verify  # Verify digital signature only
 bash scripts/boot_sequence.sh            # Test Secure Boot sequence
-bash tools/gen_hash.sh generate          # Generate hash manifest
-bash tools/gen_keypair.sh generate       # Generate RSA key pair
-bash tools/sign_manifest.sh sign         # Create digital signature
+bash tools/user/gen_hash.sh generate          # Generate hash manifest
+bash tools/user/gen_keypair.sh generate       # Generate RSA key pair
+bash tools/user/sign_manifest.sh sign         # Create digital signature
+
+# Test v2.2.5 Features
+bash tools/dev/test_sigterm.sh            # Test SIGTERM graceful shutdown
+bash tools/dev/test_network_format.sh      # Test network monitor format consistency
 
 # Test LED control
 python3 hardware/led_controller.py --color green
@@ -177,22 +181,17 @@ TrustMonitor provides comprehensive security for your monitoring system:
 
 ### Quick Demo
 ```bash
-# 5-Minute Quick Demo
-bash tools/demo.sh quick
-
-# Full Demo with All Scenarios
-bash tools/demo.sh full
-
-# Manual Testing
-bash tools/attack.sh --list          # View attack scenarios
-bash tools/attack.sh malicious_code   # Simulate attack
-bash tools/restore.sh --auto         # Restore system
+# Test Attack/Defense Demo
+bash tools/user/demo.sh quick              # 5-Minute Quick Demo
+bash tools/user/demo.sh full               # Full Demo with All Scenarios
+bash tools/security/attack.sh --list         # View attack scenarios
+bash tools/security/attack.sh malicious_code   # Simulate attack
+bash tools/user/restore.sh --auto         # Restore system
 ```
 
 ### What It Demonstrates
 1. **Attack Simulation** - Shows how system detects malicious modifications
 2. **Security Response** - System halts when integrity is compromised
-3. **Recovery Process** - Automatic restoration from secure backups
 
 ## 📚 Documentation
 
@@ -206,9 +205,10 @@ For detailed technical documentation, see the `docs/` directory:
 
 ## 📋 Version Information
 
-**Current Version**: v2.2.4 - Backup File Automatic Cleanup System
+**Current Version**: v2.2.5 - Graceful SIGTERM Handling
 
 ### Recent Releases
+- **v2.2.5**: Enhanced graceful shutdown with comprehensive SIGTERM/SIGINT handling, child process management, and hardware resource cleanup
 - **v2.2.4**: Unified backup management with automatic cleanup and retention policies
 - **v2.2.3**: Separated integrity check frequency from monitoring cycle for improved performance
 - **v2.2.2**: Unified return code constants across all components
@@ -217,13 +217,13 @@ For detailed technical documentation, see the `docs/` directory:
 - **v2.1.0**: RSA-sha256 Digital Signature System
 - **v2.0.0**: ROT Security Core with Secure Boot sequence
 
-### v2.2.4 Changes
-- **Unified Backup System**: All backup files consolidated to `backup/` directory with organized structure
-- **Automatic Cleanup**: Time-based and count-based retention policies prevent disk space issues
-- **Backup Categories**: Separation of security backups (`backup/security/`) and demo backups (`backup/attack_demo/`)
-- **Retention Policies**: Configurable retention settings (7 days for security, 3 days for demos)
-- **Cleanup Plugin**: New `scripts/backup_cleanup.sh` plugin for automatic maintenance
-- **Enhanced Tools**: Updated `sign_manifest.sh` and `attack.sh` to use unified backup system
-- **Storage Statistics**: Built-in backup usage reporting and monitoring
+### v2.2.5 Changes
+- **Graceful Shutdown**: Enhanced cleanup function with proper signal handling for SIGTERM and SIGINT
+- **Child Process Management**: Automatic tracking and cleanup of background processes (integrity checks, sensor monitoring)
+- **Hardware Resource Cleanup**: Proper GPIO cleanup and LED shutdown on service termination
+- **State File Preservation**: Ensures critical state files (.last_integrity_check, .last_shutdown) are properly saved
+- **Process Registration**: New register_child_process() and register_hardware_process() functions for tracking background tasks
+- **Timeout Handling**: Improved timeout management for background operations with graceful fallback
+- **Test Suite**: Comprehensive test suite (tools/dev/test_sigterm.sh, tools/dev/test_network_format.sh) for validating signal handling and format consistency functionality
 
 *For complete version history, see git tags and commit log*

@@ -178,11 +178,24 @@ check_integrity_periodically() {
     log_info "Starting periodic integrity check..."
     
     # Execute integrity check in background to avoid blocking monitoring loop
-    if integrity_check_check >/dev/null 2>&1; then
+    integrity_check_check >/dev/null 2>&1 &
+    local integrity_pid=$!
+    register_child_process "$integrity_pid"
+    
+    # Wait for completion with timeout
+    local wait_count=0
+    while kill -0 "$integrity_pid" 2>/dev/null && [[ $wait_count -lt 30 ]]; do
+        sleep 1
+        ((wait_count++))
+    done
+    
+    # Check result
+    if wait "$integrity_pid" 2>/dev/null; then
         log_info "Periodic integrity check PASSED"
         echo "$current_time" > "$last_check_file"
         return 0
     else
+        local integrity_rc=$?
         log_error_with_rc "Periodic integrity check FAILED" $RC_INTEGRITY_FAILED
         # Don't update timestamp on failure to allow retry on next cycle
         return $RC_INTEGRITY_FAILED
@@ -211,11 +224,129 @@ fi
 : "${PING_TARGET:?PING_TARGET is required (env)}"
 : "${CHECK_INTERVAL:?CHECK_INTERVAL is required (env)}"
 
-cleanup() {
-  log_info "Health monitor stopping"
-  exit 0
+# Global variables for cleanup tracking
+declare -a CHILD_PIDS=()
+declare -a HARDWARE_PIDS=()
+
+# Register child process for cleanup
+register_child_process() {
+    local pid="$1"
+    CHILD_PIDS+=("$pid")
 }
-trap cleanup SIGINT SIGTERM
+
+# Register hardware process for cleanup
+register_hardware_process() {
+    local pid="$1"
+    HARDWARE_PIDS+=("$pid")
+}
+
+# Cleanup function with graceful shutdown
+cleanup() {
+    local exit_code=${1:-0}
+    log_info "Health monitor stopping gracefully (exit code: $exit_code)"
+    
+    # 1. Stop child processes
+    if [[ ${#CHILD_PIDS[@]} -gt 0 ]]; then
+        log_info "Stopping ${#CHILD_PIDS[@]} child processes..."
+        for pid in "${CHILD_PIDS[@]}"; do
+            if kill -0 "$pid" 2>/dev/null; then
+                log_info "Terminating child process $pid"
+                kill -TERM "$pid" 2>/dev/null || true
+                
+                # Give process time to cleanup gracefully
+                local wait_count=0
+                while kill -0 "$pid" 2>/dev/null && [[ $wait_count -lt 5 ]]; do
+                    sleep 1
+                    ((wait_count++))
+                done
+                
+                # Force kill if still running
+                if kill -0 "$pid" 2>/dev/null; then
+                    log_warn "Force killing child process $pid"
+                    kill -KILL "$pid" 2>/dev/null || true
+                fi
+            fi
+        done
+    fi
+    
+    # 2. Cleanup hardware resources
+    cleanup_hardware_resources
+    
+    # 3. Save state files
+    save_state_files
+    
+    # 4. Final cleanup
+    log_info "Cleanup completed, exiting with code $exit_code"
+    exit "$exit_code"
+}
+
+# Hardware resource cleanup
+cleanup_hardware_resources() {
+    log_info "Cleaning up hardware resources..."
+    
+    # Stop hardware processes
+    if [[ ${#HARDWARE_PIDS[@]} -gt 0 ]]; then
+        log_info "Stopping ${#HARDWARE_PIDS[@]} hardware processes..."
+        for pid in "${HARDWARE_PIDS[@]}"; do
+            if kill -0 "$pid" 2>/dev/null; then
+                log_info "Terminating hardware process $pid"
+                kill -TERM "$pid" 2>/dev/null || true
+                sleep 1
+                kill -KILL "$pid" 2>/dev/null || true
+            fi
+        done
+    fi
+    
+    # Turn off LED (final state)
+    if [[ -f "$SENSOR_SCRIPT" ]]; then
+        log_info "Turning off LED as part of cleanup..."
+        timeout 3 python3 "$BASE_DIR/hardware/led_controller.py" --off >/dev/null 2>&1 &
+        local led_cleanup_pid=$!
+        wait "$led_cleanup_pid" 2>/dev/null || true
+    fi
+    
+    # Clean up GPIO (if accessible)
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -c "
+import sys
+try:
+    import RPi.GPIO as GPIO
+    GPIO.cleanup()
+    print('GPIO cleanup completed')
+except ImportError:
+    print('RPi.GPIO not available, skipping GPIO cleanup')
+except Exception as e:
+    print(f'GPIO cleanup error: {e}')
+" 2>/dev/null || true
+    fi
+}
+
+# Save critical state files
+save_state_files() {
+    log_info "Saving state files..."
+    
+    # Ensure integrity check timestamp is saved
+    local last_check_file="$BASE_DIR/.last_integrity_check"
+    if [[ ! -f "$last_check_file" ]]; then
+        # Create with current time if doesn't exist
+        date +%s > "$last_check_file" 2>/dev/null || true
+        log_info "Created integrity check timestamp file"
+    fi
+    
+    # Save shutdown timestamp
+    local shutdown_file="$BASE_DIR/.last_shutdown"
+    date '+%Y-%m-%d %H:%M:%S' > "$shutdown_file" 2>/dev/null || true
+    log_info "Saved shutdown timestamp"
+    
+    # Clean up any temporary files
+    find "$BASE_DIR" -name "*.tmp" -type f -delete 2>/dev/null || true
+    find "$BASE_DIR" -name "*.pid" -type f -delete 2>/dev/null || true
+}
+
+# Signal handlers
+trap 'cleanup $?' SIGINT SIGTERM
+trap 'cleanup 143' SIGTERM  # 143 = 128 + 15 (SIGTERM)
+trap 'cleanup 130' SIGINT   # 130 = 128 + 2 (SIGINT)
 
 # Check dependencies before starting
 check_dependencies
@@ -334,25 +465,34 @@ while true; do
   # --- Sensor Monitoring ---
   if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
     sensor_rc=$RC_OK
-    # Execute sensor monitoring (test mode)
-    python3 "$SENSOR_SCRIPT" --test >/dev/null 2>&1 || sensor_rc=$?
+    # Execute sensor monitoring (test mode) in background
+    python3 "$SENSOR_SCRIPT" --test >/dev/null 2>&1 &
+    local sensor_pid=$!
+    register_hardware_process "$sensor_pid"
     
-    case "$sensor_rc" in
-      $RC_OK) 
-        # Parse sensor reading results
-        sensor_output=$(python3 "$SENSOR_SCRIPT" --test 2>&1)
-        if echo "$sensor_output" | grep -q "Sensor read successful"; then
-          temp=$(echo "$sensor_output" | grep -E "Temperature: ([0-9.]+)°C" | sed -r 's/.*Temperature: ([0-9.]+)°C.*/\1/')
-          humidity=$(echo "$sensor_output" | grep -E "Humidity: ([0-9.]+)%" | sed -r 's/.*Humidity: ([0-9.]+)%.*/\1/')
-          status=$(echo "$sensor_output" | grep -E "Status: ([a-z]+)" | sed -r 's/.*Status: ([a-z]+).*/\1/')
-          log_info "Sensor OK (temp=${temp}°C humidity=${humidity}% status=${status})"
-        else
-          log_warn "Sensor WARN (Read failed)"
-        fi
-        ;;
-      *) 
-        log_error_with_rc "Sensor ERROR (Execution failed)" $RC_SENSOR_ERROR ;;
-    esac
+    # Wait for sensor reading with timeout
+    local sensor_wait_count=0
+    while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt 10 ]]; do
+        sleep 1
+        ((sensor_wait_count++))
+    done
+    
+    # Check result and get output
+    if wait "$sensor_pid" 2>/dev/null; then
+      # Parse sensor reading results
+      sensor_output=$(python3 "$SENSOR_SCRIPT" --test 2>&1)
+      if echo "$sensor_output" | grep -q "Sensor read successful"; then
+        temp=$(echo "$sensor_output" | grep -E "Temperature: ([0-9.]+)°C" | sed -r 's/.*Temperature: ([0-9.]+)°C.*/\1/')
+        humidity=$(echo "$sensor_output" | grep -E "Humidity: ([0-9.]+)%" | sed -r 's/.*Humidity: ([0-9.]+)%.*/\1/')
+        status=$(echo "$sensor_output" | grep -E "Status: ([a-z]+)" | sed -r 's/.*Status: ([a-z]+).*/\1/')
+        log_info "Sensor OK (temp=${temp}°C humidity=${humidity}% status=${status})"
+      else
+        log_warn "Sensor WARN (Read failed)"
+      fi
+    else
+      sensor_rc=$?
+      log_error_with_rc "Sensor ERROR (Execution failed)" $RC_SENSOR_ERROR
+    fi
   else
     log_warn "Sensor UNAVAILABLE (Script not found)"
   fi

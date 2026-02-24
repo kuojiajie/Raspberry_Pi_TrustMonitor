@@ -126,7 +126,23 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     rc=$?
     latency="$(network_monitor_latency_ms)"
     loss="$(network_monitor_packet_loss_pct)"
-    error_type=$(network_monitor_error_type)
-    echo "Network latency: ${latency}ms, packet loss: ${loss}%, status code: $rc, error type: $error_type"
+    
+    # Output consistent format with other monitoring scripts
+    case "$rc" in
+        $RC_OK) 
+            echo "Network OK (latency=${latency}ms loss=${loss}%)"
+            ;;
+        $RC_WARN) 
+            echo "Network WARN (latency=${latency}ms loss=${loss}%)"
+            ;;
+        $RC_ERROR) 
+            echo "Network ERROR (latency=${latency}ms loss=${loss}%)"
+            ;;
+        *) 
+            echo "Network UNKNOWN (latency=${latency}ms loss=${loss}%)"
+            ;;
+    esac
+    
+    echo "Network latency: ${latency}ms, packet loss: ${loss}%, status code: $rc"
     exit $rc
 fi

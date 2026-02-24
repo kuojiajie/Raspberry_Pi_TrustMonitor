@@ -12,7 +12,7 @@ The attack demo now uses the unified backup management system introduced in v2.2
 - **Automatic Backup Creation**: All attacks automatically create backups in `backup/attack_demo/YYYYMMDD_HHMMSS/`
 - **Dual Backup Strategy**: Creates both demo backup and security backup for maximum protection
 - **Organized Storage**: Backups are properly categorized and managed with retention policies
-- **Easy Recovery**: Use `tools/restore.sh --auto` for automatic recovery from the latest backup
+- **Easy Recovery**: Use `tools/user/restore.sh --auto` for automatic recovery from the latest backup
 
 For detailed backup management information, see [Backup Management Documentation](../backup-management.md).
 
@@ -39,7 +39,7 @@ For detailed backup management information, see [Backup Management Documentation
 **Attack Type**: Backdoor insertion in monitoring script
 ```bash
 # Execute attack
-bash tools/attack.sh malicious_code
+bash tools/security/attack.sh malicious_code
 
 # What happens:
 # - Injects backdoor code into cpu_monitor.sh
@@ -54,7 +54,7 @@ bash tools/attack.sh malicious_code
 **Attack Type**: Alter system thresholds to cause false alarms
 ```bash
 # Execute attack
-bash tools/attack.sh config_tamper
+bash tools/security/attack.sh config_tamper
 
 # What happens:
 # - Lowers CPU error threshold from 3.00 to 0.01
@@ -69,7 +69,7 @@ bash tools/attack.sh config_tamper
 **Attack Type**: Modify main health monitor behavior
 ```bash
 # Execute attack
-bash tools/attack.sh core_module
+bash tools/security/attack.sh core_module
 
 # What happens:
 # - Corrupts startup message in health_monitor.sh
@@ -84,7 +84,7 @@ bash tools/attack.sh core_module
 **Attack Type**: Attempt to create fake digital signature
 ```bash
 # Execute attack
-bash tools/attack.sh signature_forgery
+bash tools/security/attack.sh signature_forgery
 
 # What happens:
 # - Creates fake signature file
@@ -99,7 +99,7 @@ bash tools/attack.sh signature_forgery
 **Attack Type**: Multiple simultaneous attack vectors
 ```bash
 # Execute attack
-bash tools/attack.sh multiple
+bash tools/security/attack.sh multiple
 
 # What happens:
 # - Combines scenarios 1, 2, and 3
@@ -115,7 +115,7 @@ bash tools/attack.sh multiple
 ### Automatic Recovery
 ```bash
 # Full automatic recovery
-bash tools/restore.sh --auto
+bash tools/user/restore.sh --auto
 
 # What happens:
 # - Cleans attack artifacts
@@ -127,16 +127,16 @@ bash tools/restore.sh --auto
 ### Manual Recovery
 ```bash
 # List available backups
-bash tools/restore.sh --list
+bash tools/user/restore.sh --list
 
 # Restore from specific backup
-bash tools/restore.sh --backup /path/to/backup
+bash tools/user/restore.sh --backup /path/to/backup
 
 # Clean attack artifacts only
-bash tools/restore.sh --clean
+bash tools/user/restore.sh --clean
 
 # Regenerate security files
-bash tools/restore.sh --regen
+bash tools/user/restore.sh --regen
 ```
 
 ### Status Monitoring
@@ -156,11 +156,11 @@ bash scripts/verify_signature.sh verify
 ### Complete Attack/Defense Cycle
 ```bash
 # 1. Initial Status Check
-bash tools/attack.sh --status
+bash tools/security/attack.sh --status
 # Expected: System integrity VERIFIED, signature VALID
 
 # 2. Launch Attack
-bash tools/attack.sh malicious_code
+bash tools/security/attack.sh malicious_code
 # Expected: System integrity COMPROMISED, backup created
 
 # 3. Verify Detection
@@ -168,7 +168,7 @@ bash scripts/integrity_check.sh
 # Expected: Integrity check FAILED, exit code 2
 
 # 4. System Recovery
-bash tools/restore.sh --auto
+bash tools/user/restore.sh --auto
 # Expected: System restored, integrity VERIFIED
 
 # 5. Final Verification
@@ -216,7 +216,7 @@ sudo systemctl start health-monitor.service
 sudo journalctl -u health-monitor.service -f
 
 # Launch attack while service running
-bash tools/attack.sh malicious_code
+bash tools/security/attack.sh malicious_code
 
 # Observe service response
 # Expected: Service detects compromise, enters error state
@@ -225,7 +225,7 @@ bash tools/attack.sh malicious_code
 ### Boot Sequence Test
 ```bash
 # Attack the system
-bash tools/attack.sh core_module
+bash tools/security/attack.sh core_module
 
 # Restart service to test Secure Boot
 sudo systemctl restart health-monitor.service
@@ -270,7 +270,7 @@ sudo systemctl status health-monitor.service
 sudo journalctl -u health-monitor.service --since "5 minutes ago"
 
 # Restore system
-bash tools/restore.sh --auto
+bash tools/user/restore.sh --auto
 ```
 
 **Backup restoration fails**
@@ -279,7 +279,7 @@ bash tools/restore.sh --auto
 bash tools/restore.sh --list
 
 # Regenerate security files
-bash tools/restore.sh --regen
+bash tools/user/restore.sh --regen
 
 # Manual file restoration
 cp backup/attack_demo_*/files/* ./
@@ -290,7 +290,9 @@ cp backup/attack_demo_*/files/* ./
 # Fix script permissions
 chmod +x daemon/health_monitor.sh
 chmod +x scripts/*.sh
-chmod +x tools/*.sh
+chmod +x tools/user/*.sh
+chmod +x tools/dev/*.sh
+chmod +x tools/security/*.sh
 
 # Fix key permissions
 chmod 600 keys/private_key.pem
