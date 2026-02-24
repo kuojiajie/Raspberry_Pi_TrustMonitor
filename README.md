@@ -79,11 +79,14 @@ Raspberry_Pi_TrustMonitor/
 │   ├── memory_monitor.sh              # Memory usage monitoring plugin
 │   ├── network_monitor.sh             # Network connectivity monitoring plugin
 │   ├── integrity_check.sh            # ROT Security: File integrity verification plugin
+│   ├── verify_signature.sh            # ROT Security: Digital signature verification plugin
 │   └── boot_sequence.sh              # ROT Security: Secure Boot sequence controller
 ├── systemd
 │   └── health-monitor.service.example  # Service configuration template
 └── tools
     ├── gen_hash.sh                    # ROT Security: Hash fingerprint generator
+    ├── gen_keypair.sh                # ROT Security: RSA key pair generator
+    ├── sign_manifest.sh               # ROT Security: Digital signature generator
     └── crash_test.sh                  # Service testing utility
 ```
 
@@ -157,9 +160,12 @@ bash scripts/network_monitor.sh
 bash scripts/cpu_temp_monitor.sh
 
 # Test ROT Security features
-bash scripts/integrity_check.sh          # Verify file integrity
+bash scripts/integrity_check.sh          # Verify file integrity and signature
+bash scripts/verify_signature.sh verify  # Verify digital signature only
 bash scripts/boot_sequence.sh            # Test Secure Boot sequence
 bash tools/gen_hash.sh generate          # Generate hash manifest
+bash tools/gen_keypair.sh generate       # Generate RSA key pair
+bash tools/sign_manifest.sh sign         # Create digital signature
 
 # Test LED control
 python3 hardware/led_controller.py --color green
@@ -176,11 +182,12 @@ python3 hardware/led_controller.py --blink blue
 ✅ **BC Dependency Removal**: Successfully removed bc dependency using awk for floating point comparisons
 ✅ **Temperature Precision**: Unified decimal point precision across all monitoring components
 ✅ **Plugin Auto-Load System**: Dynamic plugin discovery and loading with standardized interface
-✅ **Plugin Testing**: All 7 monitoring plugins successfully converted and tested
+✅ **Plugin Testing**: All 8 monitoring plugins successfully converted and tested
 ✅ **Logging System**: Unified logging with plugin-specific context and conflict resolution
 ✅ **Production Ready**: Stable 46-second monitoring cycles with automatic recovery
 ✅ **ROT Security Core**: Secure Boot sequence with integrity verification fully implemented
 ✅ **Hash Fingerprint Mechanism**: SHA256-based file integrity checking with automatic detection
+✅ **Digital Signature System**: RSA-sha256 cryptographic verification with dual validation
 ✅ **LED Status Feedback**: Blue (booting) → Green (normal) / Red (failed) visual indicators
 
 ### Service Management
@@ -285,7 +292,7 @@ The RGB LED provides visual feedback about system health:
 ### 🟡 Phase 2: ROT Security Core (COMPLETED)
 - ✅ **Firmware Integrity**: Hash-based verification of system files with SHA256
 - ✅ **Secure Boot Simulation**: Boot-time integrity checking with LED status feedback
-- ⏳ **Digital Signatures**: Cryptographic verification of critical files (Task 7)
+- ✅ **Digital Signatures**: RSA-sha256 cryptographic verification of critical files (Task 7)
 - ⏳ **Attack/Defense Scripts**: Demonstration scenarios (Task 8)
 
 ### 🔴 Phase 3: Advanced Features (Planned)
@@ -316,7 +323,8 @@ The system now implements a comprehensive Secure Boot sequence that verifies sys
 **Boot Flow**:
 1. **System Startup** → LED Blue (Booting)
 2. **Integrity Check** → Verify all critical files against SHA256 hashes
-3. **Result Processing**:
+3. **Digital Signature Verification** → RSA-sha256 signature validation
+4. **Result Processing**:
    - ✅ **PASS** → LED Green → Enter normal monitoring mode
    - ❌ **FAIL** → LED Red Blinking → System halt (refuses service)
 
@@ -325,10 +333,22 @@ The system now implements a comprehensive Secure Boot sequence that verifies sys
 - **scripts/integrity_check.sh**: Verifies file integrity using manifest.sha256
 - **Automatic Detection**: Any file modification triggers security halt
 
+### Digital Signature System
+- **tools/gen_keypair.sh**: Generates RSA-2048 key pairs for cryptographic signing
+- **tools/sign_manifest.sh**: Creates RSA-sha256 digital signatures for manifest files
+- **scripts/verify_signature.sh**: Verifies RSA digital signatures using public keys
+- **Dual Verification**: Combines integrity checking with signature validation
+
 ### Usage Examples
 ```bash
 # Generate hash manifest
 bash tools/gen_hash.sh generate
+
+# Generate RSA key pair
+bash tools/gen_keypair.sh generate
+
+# Create digital signature
+bash tools/sign_manifest.sh sign
 
 # Verify integrity manually
 bash scripts/integrity_check.sh
@@ -339,16 +359,20 @@ bash daemon/health_monitor.sh
 # Simulate attack (modify file)
 echo "# malicious code" >> scripts/cpu_monitor.sh
 # System will halt on next restart with red LED blinking
+
+# Verify signature manually
+bash scripts/verify_signature.sh verify
 ```
 
 ---
 
 ## 📋 Version Information
 
-**Current Version**: v2.0.0 (Phase 2 ROT Security Core)
+**Current Version**: v2.1.0 (Phase 2 ROT Security Core - Complete)
 
 ### Version History
-- **v2.0.0**: Phase 2 Complete - ROT Security Core with Secure Boot sequence and integrity verification
+- **v2.1.0**: Phase 2 Complete - ROT Security Core with RSA-sha256 digital signatures and dual verification system
+- **v2.0.0**: Phase 2 Foundation - ROT Security Core with Secure Boot sequence and integrity verification
 - **v1.1.5**: Phase 1 Refactoring - Plugin Auto-Load System with dynamic plugin discovery and loading
 - **v1.1.4**: Phase 1 Refactoring - Remove bc dependency using awk for floating point comparisons
 - **v1.1.3**: Phase 1 Refactoring - Overall health aggregation system
@@ -363,14 +387,15 @@ echo "# malicious code" >> scripts/cpu_monitor.sh
 - ⚠️ **PWM Control**: LED hardware response requires further investigation (PWM control issues)
 - ⚠️ **Sensor Accuracy**: DHT11 sensor may occasionally experience checksum errors (handled by retry mechanism)
 - ⚠️ **Hash Regeneration**: manifest.sha256 must be regenerated after any legitimate code changes
+- ⚠️ **Key Management**: RSA keys must be securely stored and backed up manually
 
 ### Future Improvements
 - 🔧 **LED Enhancement**: Branch development for improved LED visibility and hardware response
 - 🔧 **Sensor Optimization**: Enhanced sensor reading algorithms and error handling
 - 🔧 **Visual Feedback**: Alternative status indication methods
-- 🔧 **Digital Signatures**: RSA-based cryptographic verification (Phase 2 Task 7)
+- 🔧 **Key Rotation**: Automated RSA key rotation and management system
 - 🔧 **Attack Scenarios**: Comprehensive attack/defense demonstration scripts (Phase 2 Task 8)
 
 ---
 
-**Phase 2 Complete** - ROT Security Core implemented with Secure Boot sequence and integrity verification
+**Phase 2 Complete** - ROT Security Core implemented with Secure Boot sequence, integrity verification, and RSA-sha256 digital signatures

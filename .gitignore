@@ -60,3 +60,6 @@ health_monitor_*.log
 
 # Phase 2: ROT Security - Generated files (do not commit)
 manifest.sha256
+manifest.sha256.sig
+manifest.sha256.sig.backup_*
+keys/

@@ -16,12 +16,13 @@ if [[ -f "$ENV_FILE" ]]; then
     source "$ENV_FILE"
 fi
 
-# Load logger for standalone execution
+# Load logger and signature verification
 source "$BASE_DIR/lib/logger.sh"
+source "$BASE_DIR/scripts/verify_signature.sh"
 
 # Plugin metadata
 integrity_check_description() {
-    echo "Verifies file integrity using SHA256 hash comparison against manifest"
+    echo "Verifies file integrity using SHA256 hash comparison and digital signature verification"
 }
 
 # Configuration
@@ -112,7 +113,21 @@ verify_integrity() {
     if [[ $verify_result -eq 0 ]]; then
         integrity_check_log_info "All $total_files files verified successfully"
         echo "INTEGRITY OK: All $total_files files verified"
-        return 0
+        
+        # Proceed to signature verification
+        integrity_check_log_info "File integrity verified, proceeding to signature verification..."
+        verify_signature_check
+        local signature_result=$?
+        
+        if [[ $signature_result -eq 0 ]]; then
+            integrity_check_log_info "Both integrity and signature verification passed"
+            echo "INTEGRITY OK: All $total_files files verified and signature valid"
+            return 0
+        else
+            integrity_check_log_error "Signature verification failed"
+            echo "INTEGRITY ERROR: Signature verification failed"
+            return 2
+        fi
     else
         integrity_check_log_error "Integrity verification failed: $failed_count/$total_files files failed"
         echo "INTEGRITY ERROR: $failed_count/$total_files files failed verification"
