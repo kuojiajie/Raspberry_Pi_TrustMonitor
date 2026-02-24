@@ -16,8 +16,9 @@ if [[ -f "$ENV_FILE" ]]; then
     source "$ENV_FILE"
 fi
 
-# Load logger and signature verification
+# Load logger and return codes
 source "$BASE_DIR/lib/logger.sh"
+source "$BASE_DIR/lib/return_codes.sh"
 source "$BASE_DIR/scripts/verify_signature.sh"
 
 # Plugin metadata
@@ -46,16 +47,16 @@ check_manifest_exists() {
     if [[ ! -f "$MANIFEST_FILE" ]]; then
         integrity_check_log_error "Manifest file not found: $MANIFEST_FILE"
         echo "INTEGRITY ERROR: No manifest file found"
-        return 2
+        return $RC_INTEGRITY_FAILED
     fi
     
     if [[ ! -r "$MANIFEST_FILE" ]]; then
         integrity_check_log_error "Manifest file not readable: $MANIFEST_FILE"
         echo "INTEGRITY ERROR: Manifest file not readable"
-        return 2
+        return $RC_INTEGRITY_FAILED
     fi
     
-    return 0
+    return $RC_OK
 }
 
 # Verify file integrity
@@ -64,7 +65,7 @@ verify_integrity() {
     
     # Check manifest exists and is readable
     if ! check_manifest_exists; then
-        return 2
+        return $RC_INTEGRITY_FAILED
     fi
     
     # Count total files in manifest
@@ -119,19 +120,19 @@ verify_integrity() {
         verify_signature_check
         local signature_result=$?
         
-        if [[ $signature_result -eq 0 ]]; then
+        if [[ $signature_result -eq $RC_OK ]]; then
             integrity_check_log_info "Both integrity and signature verification passed"
             echo "INTEGRITY OK: All $total_files files verified and signature valid"
-            return 0
+            return $RC_OK
         else
             integrity_check_log_error "Signature verification failed"
             echo "INTEGRITY ERROR: Signature verification failed"
-            return 2
+            return $RC_SIGNATURE_FAILED
         fi
     else
         integrity_check_log_error "Integrity verification failed: $failed_count/$total_files files failed"
         echo "INTEGRITY ERROR: $failed_count/$total_files files failed verification"
-        return 2
+        return $RC_INTEGRITY_FAILED
     fi
 }
 
@@ -141,7 +142,7 @@ integrity_check_check() {
     if ! command -v sha256sum >/dev/null 2>&1; then
         integrity_check_log_error "sha256sum command not found"
         echo "INTEGRITY ERROR: sha256sum command not available"
-        return 2
+        return $RC_DEPENDENCY_ERROR
     fi
     
     # Perform integrity verification

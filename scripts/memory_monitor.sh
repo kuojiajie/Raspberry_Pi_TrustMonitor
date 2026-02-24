@@ -43,17 +43,17 @@ memory_monitor_check() {
     
     # Compare with thresholds
     if (( $(awk "BEGIN {print ($avail_pct <= $err_pct)}") )); then
-        log_error "Memory availability critical: ${avail_pct}%"
+        log_error_with_rc "Memory availability critical: ${avail_pct}%" $RC_ERROR
         echo "Memory CRITICAL (avail=${avail_pct}%)"
-        return 2
+        return $RC_ERROR
     elif (( $(awk "BEGIN {print ($avail_pct <= $warn_pct)}") )); then
         log_warn "Memory availability low: ${avail_pct}%"
         echo "Memory WARN (avail=${avail_pct}%)"
-        return 1
+        return $RC_WARN
     else
         log_info "Memory availability normal: ${avail_pct}%"
         echo "Memory OK (avail=${avail_pct}%)"
-        return 0
+        return $RC_OK
     fi
 }
 
@@ -70,8 +70,9 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         source "$ENV_FILE"
     fi
     
-    # Load logger for standalone execution
+    # Load logger and return codes
     source "$BASE_DIR/lib/logger.sh"
+    source "$BASE_DIR/lib/return_codes.sh"
     
     memory_monitor_check
     rc=$?

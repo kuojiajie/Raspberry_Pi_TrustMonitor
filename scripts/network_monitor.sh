@@ -14,19 +14,22 @@ network_monitor_description() {
 # Network quality reading functions
 network_monitor_latency_ms() {
     local latency
-    latency="$(ping -c 3 "$PING_TARGET" 2>/dev/null | tail -1 | awk -F'/' '{print $5}')"
+    local target="${PING_TARGET:-8.8.8.8}"
+    latency="$(ping -c 3 "$target" 2>/dev/null | tail -1 | awk -F'/' '{print $5}')"
     echo "${latency:-0}"
 }
 
 network_monitor_packet_loss_pct() {
     local loss
-    loss="$(ping -c 3 "$PING_TARGET" 2>/dev/null | grep 'packet loss' | awk -F'%' '{print $1}' | awk '{print $NF}')"
+    local target="${PING_TARGET:-8.8.8.8}"
+    loss="$(ping -c 3 "$target" 2>/dev/null | grep 'packet loss' | awk -F'%' '{print $1}' | awk '{print $NF}')"
     echo "${loss:-0}"
 }
 
 # Network error type determination
 network_monitor_error_type() {
     local latency loss warn_latency err_latency warn_loss err_loss
+    local target="${PING_TARGET:-8.8.8.8}"
     
     warn_latency="${NETWORK_LATENCY_WARN_MS:-200}"
     err_latency="${NETWORK_LATENCY_ERROR_MS:-500}"
@@ -71,34 +74,35 @@ network_monitor_check() {
     
     # Check connection failure
     if [[ "$latency" == "0" && "$loss" == "0" ]]; then
-        log_error "Network connection failed: Cannot connect to $PING_TARGET"
-        return 2
+        local target="${PING_TARGET:-8.8.8.8}"
+        log_error_with_rc "Network connection failed: Cannot connect to $target" $RC_NETWORK_FAILED
+        return $RC_NETWORK_FAILED
     fi
     
     # Check high latency
     if (( $(awk "BEGIN {print ($latency >= $err_latency)}") )); then
-        log_error "Network latency too high: ${latency}ms (error threshold: ${err_latency}ms)"
-        return 2
+        log_error_with_rc "Network latency too high: ${latency}ms (error threshold: ${err_latency}ms)" $RC_NETWORK_FAILED
+        return $RC_NETWORK_FAILED
     fi
     
     if (( $(awk "BEGIN {print ($latency >= $warn_latency)}") )); then
         log_warn "Network latency high: ${latency}ms (warning threshold: ${warn_latency}ms)"
-        return 1
+        return $RC_WARN
     fi
     
     # Check high packet loss
     if (( $(awk "BEGIN {print ($loss >= $err_loss)}") )); then
-        log_error "Network packet loss too high: ${loss}% (error threshold: ${err_loss}%)"
-        return 2
+        log_error_with_rc "Network packet loss too high: ${loss}% (error threshold: ${err_loss}%)" $RC_NETWORK_FAILED
+        return $RC_NETWORK_FAILED
     fi
     
     if (( $(awk "BEGIN {print ($loss >= $warn_loss)}") )); then
         log_warn "Network packet loss high: ${loss}% (warning threshold: ${warn_loss}%)"
-        return 1
+        return $RC_WARN
     fi
     
     log_info "Network quality normal: latency=${latency}ms, loss=${loss}%"
-    return 0
+    return $RC_OK
 }
 
 # Main execution
@@ -114,8 +118,9 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
         source "$ENV_FILE"
     fi
     
-    # Load logger for standalone execution
+    # Load logger and return codes
     source "$BASE_DIR/lib/logger.sh"
+    source "$BASE_DIR/lib/return_codes.sh"
     
     network_monitor_check
     rc=$?

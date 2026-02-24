@@ -8,6 +8,7 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1090
 source "$SCRIPT_DIR/logger.sh"
+source "$SCRIPT_DIR/return_codes.sh"
 
 # Plugin registry
 declare -A PLUGINS
@@ -117,12 +118,12 @@ execute_plugin_check() {
     
     if ! is_plugin_loaded "$plugin_name"; then
         echo "Error: Plugin $plugin_name is not loaded" >&2
-        return 3
+        return $RC_PLUGIN_ERROR
     fi
     
     if ! declare -f "$check_function" >/dev/null; then
         echo "Error: Plugin $plugin_name does not have $check_function function" >&2
-        return 3
+        return $RC_PLUGIN_ERROR
     fi
     
     # Execute the check function and capture its return code

@@ -50,17 +50,17 @@ cpu_temp_monitor_check() {
     
     # Compare with thresholds
     if (( $(awk "BEGIN {print ($cpu_temp >= $CPU_TEMP_ERROR)}") )); then
-        log_error "CPU temperature too high: ${cpu_temp}°C (error threshold: ${CPU_TEMP_ERROR}°C)"
+        log_error_with_rc "CPU temperature too high: ${cpu_temp}°C (error threshold: ${CPU_TEMP_ERROR}°C)" $RC_ERROR
         echo "CPU Temperature CRITICAL (temp=${cpu_temp}°C)"
-        return 2
+        return $RC_ERROR
     elif (( $(awk "BEGIN {print ($cpu_temp >= $CPU_TEMP_WARN)}") )); then
         log_warn "CPU temperature high: ${cpu_temp}°C (warning threshold: ${CPU_TEMP_WARN}°C)"
         echo "CPU Temperature WARN (temp=${cpu_temp}°C)"
-        return 1
+        return $RC_WARN
     else
         log_info "CPU temperature normal: ${cpu_temp}°C"
         echo "CPU Temperature OK (temp=${cpu_temp}°C)"
-        return 0
+        return $RC_OK
     fi
 }
 
@@ -71,8 +71,9 @@ cpu_temp_monitor_value() {
 
 # Main execution
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    # Load logger for standalone execution
+    # Load logger and return codes
     source "$BASE_DIR/lib/logger.sh"
+    source "$BASE_DIR/lib/return_codes.sh"
     
     cpu_temp_monitor_check
     rc=$?

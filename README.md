@@ -205,12 +205,20 @@ For detailed technical documentation, see the `docs/` directory:
 
 ## 📋 Version Information
 
-**Current Version**: v2.2.1 - README Simplification and Documentation Restructure
+**Current Version**: v2.2.2 - Unified Return Code Constants
 
 ### Recent Releases
+- **v2.2.2**: Unified return code constants across all components
 - **v2.2.1**: README simplification and documentation restructure
 - **v2.2.0**: ROT Attack/Defense Demo with full security validation
 - **v2.1.0**: RSA-sha256 Digital Signature System
 - **v2.0.0**: ROT Security Core with Secure Boot sequence
+
+### v2.2.2 Changes
+- **Unified Return Codes**: Standardized exit codes (RC_OK, RC_WARN, RC_ERROR, etc.)
+- **Enhanced Logging**: Return code descriptions integrated into log messages
+- **Better Error Handling**: Categorized error codes for debugging and monitoring
+- **Consistent Interface**: All plugins and modules use same return code system
+- **Utility Functions**: Helper functions for return code validation and logging
 
 *For complete version history, see git tags and commit log*

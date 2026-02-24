@@ -16,8 +16,9 @@ if [[ -f "$ENV_FILE" ]]; then
     source "$ENV_FILE"
 fi
 
-# Load logger
+# Load logger and return codes
 source "$BASE_DIR/lib/logger.sh"
+source "$BASE_DIR/lib/return_codes.sh"
 
 # Configuration
 MANIFEST_FILE="${MANIFEST_FILE:-$BASE_DIR/manifest.sha256}"
@@ -47,9 +48,9 @@ verify_signature_log_error() {
 check_openssl() {
     if ! command -v openssl >/dev/null 2>&1; then
         verify_signature_log_error "OpenSSL is required but not installed"
-        return 1
+        return $RC_DEPENDENCY_ERROR
     fi
-    return 0
+    return $RC_OK
 }
 
 # Check required files
@@ -83,7 +84,7 @@ check_required_files() {
         verify_signature_log_error "  2. Generate keys: bash tools/gen_keypair.sh generate"
         verify_signature_log_error "  3. Sign manifest: bash tools/sign_manifest.sh sign"
         
-        return 1
+        return $RC_CONFIG_ERROR
     fi
     
     return 0
@@ -103,7 +104,7 @@ verify_signature() {
                    -signature "$SIGNATURE_FILE" "$MANIFEST_FILE" 2>&1)
     local verify_result=$?
     
-    if [[ $verify_result -eq 0 ]]; then
+    if [[ $verify_result -eq $RC_OK ]]; then
         verify_signature_log_info "✅ Signature verification PASSED"
         
         # Extract manifest hash for additional verification
@@ -121,7 +122,7 @@ verify_signature() {
         key_fingerprint=$(openssl pkey -pubin -in "$PUBLIC_KEY_FILE" -outform DER 2>/dev/null | openssl dgst -sha256 -hex | cut -d' ' -f2)
         verify_signature_log_info "Public key fingerprint: $key_fingerprint"
         
-        return 0
+        return $RC_OK
     else
         verify_signature_log_error "❌ Signature verification FAILED"
         verify_signature_log_error "OpenSSL output: $verify_output"
@@ -133,7 +134,7 @@ verify_signature() {
         verify_signature_log_error "  - Wrong public key used"
         verify_signature_log_error "  - Signature created with different private key"
         
-        return 2
+        return $RC_SIGNATURE_FAILED
     fi
 }
 
@@ -155,22 +156,22 @@ verify_signature_check() {
     # Check dependencies
     if ! check_openssl; then
         verify_signature_log_error "Dependency check failed"
-        return 2
+        return $RC_DEPENDENCY_ERROR
     fi
     
     # Check required files
     if ! check_required_files; then
         verify_signature_log_error "Required files check failed"
-        return 2
+        return $RC_CONFIG_ERROR
     fi
     
     # Perform verification
     if verify_signature; then
-        display_verification_status 0
-        return 0  # OK
+        display_verification_status $RC_OK
+        return $RC_OK  # OK
     else
-        display_verification_status 2
-        return 2  # ERROR
+        display_verification_status $RC_SIGNATURE_FAILED
+        return $RC_SIGNATURE_FAILED  # ERROR
     fi
 }
 

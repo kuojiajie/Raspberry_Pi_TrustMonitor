@@ -77,3 +77,6 @@ backup/attack_demo_*/
 demo_*.log
 attack_*.log
 restore_*.log
+
+# Phase 3: Return code constants (implementation files tracked, test outputs excluded)
+return_codes_test.log

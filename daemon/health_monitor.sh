@@ -157,6 +157,7 @@ aggregate_health_status() {
 
 # Load monitoring modules using plugin system
 source "$BASE_DIR/lib/logger.sh"
+source "$BASE_DIR/lib/return_codes.sh"
 source "$BASE_DIR/lib/plugin_loader.sh"
 
 # Auto-load all monitoring plugins
@@ -196,10 +197,10 @@ source "$BASE_DIR/scripts/boot_sequence.sh"
 
 # Execute boot sequence check
 if ! boot_sequence_check; then
-    log_error "Secure Boot sequence failed - system halted"
+    log_error_with_rc "Secure Boot sequence failed - system halted" $RC_BOOT_FAILED
     # boot_sequence_check should never return on failure (infinite loop)
     # But if it does, we exit with error
-    exit 2
+    exit $RC_BOOT_FAILED
 fi
 
 log_info "Secure Boot sequence completed successfully - entering monitoring loop"
@@ -207,8 +208,8 @@ log_info "Secure Boot sequence completed successfully - entering monitoring loop
 while true; do
   # Crash simulation hook (for restart testing)
   if [[ "${FORCE_CRASH:-0}" == "1" ]]; then
-    log_error "Simulating CRASH triggered by FORCE_CRASH env"
-    exit 1
+    log_error_with_rc "Simulating CRASH triggered by FORCE_CRASH env" $RC_ERROR
+    exit $RC_ERROR
   fi
 
   # --- Plugin-based Monitoring ---
@@ -223,30 +224,30 @@ while true; do
   done
   
   # Extract results for aggregation
-  network_rc=${plugin_results["network_monitor"]:-0}
-  cpu_rc=${plugin_results["cpu_monitor"]:-0}
-  memory_rc=${plugin_results["memory_monitor"]:-0}
-  disk_rc=${plugin_results["disk_monitor"]:-0}
-  temp_rc=${plugin_results["cpu_temp_monitor"]:-0}
+  network_rc=${plugin_results["network_monitor"]:-$RC_OK}
+  cpu_rc=${plugin_results["cpu_monitor"]:-$RC_OK}
+  memory_rc=${plugin_results["memory_monitor"]:-$RC_OK}
+  disk_rc=${plugin_results["disk_monitor"]:-$RC_OK}
+  temp_rc=${plugin_results["cpu_temp_monitor"]:-$RC_OK}
   
   # Get detailed information for logging
   if is_plugin_loaded "network_monitor"; then
     latency=$(network_monitor_latency_ms)
     packet_loss=$(network_monitor_packet_loss_pct)
     case "$network_rc" in
-      0) log_info  "Network OK (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
-      1) log_warn  "Network WARN (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
-      2) 
+      $RC_OK) log_info  "Network OK (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
+      $RC_WARN) log_warn  "Network WARN (target=$PING_TARGET latency=${latency}ms loss=${packet_loss}%)" ;;
+      $RC_ERROR) 
         error_type=$(network_monitor_error_type)
         case "$error_type" in
           "connection_failed")
-            log_error "Network ERROR (target=$PING_TARGET connection failed)" ;;
+            log_error_with_rc "Network ERROR (target=$PING_TARGET connection failed)" $RC_NETWORK_FAILED ;;
           "high_latency")
-            log_error "Network ERROR (target=$PING_TARGET high latency=${latency}ms)" ;;
+            log_error_with_rc "Network ERROR (target=$PING_TARGET high latency=${latency}ms)" $RC_NETWORK_FAILED ;;
           "high_packet_loss")
-            log_error "Network ERROR (target=$PING_TARGET high packet loss=${packet_loss}%)" ;;
+            log_error_with_rc "Network ERROR (target=$PING_TARGET high packet loss=${packet_loss}%)" $RC_NETWORK_FAILED ;;
           *)
-            log_error "Network ERROR (target=$PING_TARGET unknown error)" ;;
+            log_error_with_rc "Network ERROR (target=$PING_TARGET unknown error)" $RC_NETWORK_FAILED ;;
         esac
         ;;
     esac
@@ -256,10 +257,10 @@ while true; do
   if is_plugin_loaded "cpu_monitor"; then
     load1=$(cpu_monitor_load1)
     case "$cpu_rc" in
-      0) log_info  "CPU OK (load1=$load1)" ;;
-      1) log_warn  "CPU WARN (load1=$load1 warn>=$CPU_LOAD_WARN)" ;;
-      2) log_error "CPU ERROR (load1=$load1 error>=$CPU_LOAD_ERROR)" ;;
-      *) log_error "CPU UNKNOWN (rc=$cpu_rc load1=$load1)" ;;
+      $RC_OK) log_info  "CPU OK (load1=$load1)" ;;
+      $RC_WARN) log_warn  "CPU WARN (load1=$load1 warn>=$CPU_LOAD_WARN)" ;;
+      $RC_ERROR) log_error_with_rc "CPU ERROR (load1=$load1 error>=$CPU_LOAD_ERROR)" $RC_ERROR ;;
+      *) log_error_with_rc "CPU UNKNOWN (rc=$cpu_rc load1=$load1)" $RC_PLUGIN_ERROR ;;
     esac
   fi
 
@@ -267,10 +268,10 @@ while true; do
   if is_plugin_loaded "memory_monitor"; then
     avail_pct="$(memory_monitor_avail_pct)"
     case "$memory_rc" in
-      0) log_info  "Memory OK (avail=${avail_pct}%)" ;;
-      1) log_warn  "Memory WARN (avail=${avail_pct}% warn<=${MEM_AVAIL_WARN_PCT}%)" ;;
-      2) log_error "Memory ERROR (avail=${avail_pct}% error<=${MEM_AVAIL_ERROR_PCT}%)" ;;
-      *) log_error "Memory UNKNOWN (rc=$memory_rc avail=${avail_pct}%)" ;;
+      $RC_OK) log_info  "Memory OK (avail=${avail_pct}%)" ;;
+      $RC_WARN) log_warn  "Memory WARN (avail=${avail_pct}% warn<=${MEM_AVAIL_WARN_PCT}%)" ;;
+      $RC_ERROR) log_error_with_rc "Memory ERROR (avail=${avail_pct}% error<=${MEM_AVAIL_ERROR_PCT}%)" $RC_ERROR ;;
+      *) log_error_with_rc "Memory UNKNOWN (rc=$memory_rc avail=${avail_pct}%)" $RC_PLUGIN_ERROR ;;
     esac
   fi
 
@@ -278,10 +279,10 @@ while true; do
   if is_plugin_loaded "disk_monitor"; then
     disk_used="$(disk_monitor_used_pct "/")"
     case "$disk_rc" in
-      0) log_info  "Disk OK (used=${disk_used}%)" ;;
-      1) log_warn  "Disk WARN (used=${disk_used}% warn>=${DISK_USED_WARN_PCT}%)" ;;
-      2) log_error "Disk ERROR (used=${disk_used}% error>=${DISK_USED_ERROR_PCT}%)" ;;
-      *) log_error "Disk UNKNOWN (rc=$disk_rc used=${disk_used}%)" ;;
+      $RC_OK) log_info  "Disk OK (used=${disk_used}%)" ;;
+      $RC_WARN) log_warn  "Disk WARN (used=${disk_used}% warn>=${DISK_USED_WARN_PCT}%)" ;;
+      $RC_ERROR) log_error_with_rc "Disk ERROR (used=${disk_used}% error>=${DISK_USED_ERROR_PCT}%)" $RC_ERROR ;;
+      *) log_error_with_rc "Disk UNKNOWN (rc=$disk_rc used=${disk_used}%)" $RC_PLUGIN_ERROR ;;
     esac
   fi
 
@@ -289,21 +290,21 @@ while true; do
   if is_plugin_loaded "cpu_temp_monitor"; then
     cpu_temp=$(cpu_temp_monitor_value)
     case "$temp_rc" in
-      0) log_info  "CPU Temperature OK (temp=${cpu_temp}°C)" ;;
-      1) log_warn  "CPU Temperature WARN (temp=${cpu_temp}°C warn>=${CPU_TEMP_WARN}°C)" ;;
-      2) log_error "CPU Temperature ERROR (temp=${cpu_temp}°C error>=${CPU_TEMP_ERROR}°C)" ;;
-      *) log_error "CPU Temperature UNKNOWN (rc=$temp_rc temp=${cpu_temp}°C)" ;;
+      $RC_OK) log_info  "CPU Temperature OK (temp=${cpu_temp}°C)" ;;
+      $RC_WARN) log_warn  "CPU Temperature WARN (temp=${cpu_temp}°C warn>=${CPU_TEMP_WARN}°C)" ;;
+      $RC_ERROR) log_error_with_rc "CPU Temperature ERROR (temp=${cpu_temp}°C error>=${CPU_TEMP_ERROR}°C)" $RC_ERROR ;;
+      *) log_error_with_rc "CPU Temperature UNKNOWN (rc=$temp_rc temp=${cpu_temp}°C)" $RC_PLUGIN_ERROR ;;
     esac
   fi
 
   # --- Sensor Monitoring ---
   if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
-    sensor_rc=0
+    sensor_rc=$RC_OK
     # Execute sensor monitoring (test mode)
     python3 "$SENSOR_SCRIPT" --test >/dev/null 2>&1 || sensor_rc=$?
     
     case "$sensor_rc" in
-      0) 
+      $RC_OK) 
         # Parse sensor reading results
         sensor_output=$(python3 "$SENSOR_SCRIPT" --test 2>&1)
         if echo "$sensor_output" | grep -q "Sensor read successful"; then
@@ -316,7 +317,7 @@ while true; do
         fi
         ;;
       *) 
-        log_error "Sensor ERROR (Execution failed)" ;;
+        log_error_with_rc "Sensor ERROR (Execution failed)" $RC_SENSOR_ERROR ;;
     esac
   else
     log_warn "Sensor UNAVAILABLE (Script not found)"
@@ -326,7 +327,7 @@ while true; do
   if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
     aggregate_health_status "$network_rc" "$cpu_rc" "$memory_rc" "$disk_rc" "$temp_rc" "$sensor_rc"
   else
-    aggregate_health_status "$network_rc" "$cpu_rc" "$memory_rc" "$disk_rc" "$temp_rc" "0"
+    aggregate_health_status "$network_rc" "$cpu_rc" "$memory_rc" "$disk_rc" "$temp_rc" "$RC_OK"
   fi
 
   sleep "$CHECK_INTERVAL"

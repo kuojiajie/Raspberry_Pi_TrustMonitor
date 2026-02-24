@@ -26,17 +26,17 @@ cpu_monitor_check() {
     
     # Compare with thresholds
     if (( $(awk "BEGIN {print ($load1 >= $err)}") )); then
-        log_error "CPU load critical: $load1"
+        log_error_with_rc "CPU load critical: $load1" $RC_ERROR
         echo "CPU CRITICAL (load1=$load1)"
-        return 2
+        return $RC_ERROR
     elif (( $(awk "BEGIN {print ($load1 >= $warn)}") )); then
         log_warn "CPU load warning: $load1"
         echo "CPU WARN (load1=$load1)"
-        return 1
+        return $RC_WARN
     else
         log_info "CPU load normal: $load1"
         echo "CPU OK (load1=$load1)"
-        return 0
+        return $RC_OK
     fi
 }
 
@@ -53,8 +53,9 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         source "$ENV_FILE"
     fi
     
-    # Load logger for standalone execution
+    # Load logger and return codes
     source "$BASE_DIR/lib/logger.sh"
+    source "$BASE_DIR/lib/return_codes.sh"
     
     cpu_monitor_check
     rc=$?

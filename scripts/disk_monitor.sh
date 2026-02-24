@@ -28,23 +28,23 @@ disk_monitor_check() {
     
     # Sanity check
     if [[ -z "$used" ]]; then
-        log_error "Cannot read disk usage: $mount_point"
-        return 2
+        log_error_with_rc "Cannot read disk usage: $mount_point" $RC_ERROR
+        return $RC_ERROR
     fi
     
     # Compare with thresholds
     if (( $(awk "BEGIN {print ($used >= $err)}") )); then
-        log_error "Disk usage critical: ${used}%"
+        log_error_with_rc "Disk usage critical: ${used}%" $RC_ERROR
         echo "Disk CRITICAL (used=${used}%)"
-        return 2
+        return $RC_ERROR
     elif (( $(awk "BEGIN {print ($used >= $warn)}") )); then
         log_warn "Disk usage high: ${used}%"
         echo "Disk WARN (used=${used}%)"
-        return 1
+        return $RC_WARN
     else
         log_info "Disk usage normal: ${used}%"
         echo "Disk OK (used=${used}%)"
-        return 0
+        return $RC_OK
     fi
 }
 
@@ -61,8 +61,9 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         source "$ENV_FILE"
     fi
     
-    # Load logger for standalone execution
+    # Load logger and return codes
     source "$BASE_DIR/lib/logger.sh"
+    source "$BASE_DIR/lib/return_codes.sh"
     
     disk_monitor_check "${1:-/}"
     rc=$?

@@ -16,8 +16,9 @@ if [[ -f "$ENV_FILE" ]]; then
     source "$ENV_FILE"
 fi
 
-# Load logger and integrity check
+# Load logger and return codes
 source "$BASE_DIR/lib/logger.sh"
+source "$BASE_DIR/lib/return_codes.sh"
 source "$BASE_DIR/scripts/integrity_check.sh"
 
 # Boot sequence logging
@@ -84,10 +85,10 @@ verify_system_integrity() {
     # Execute integrity check
     if integrity_check_check; then
         boot_sequence_log_info "System integrity verification PASSED"
-        return 0
+        return $RC_OK
     else
         boot_sequence_log_error "System integrity verification FAILED"
-        return 2
+        return $RC_INTEGRITY_FAILED
     fi
 }
 
@@ -109,7 +110,7 @@ boot_sequence_check() {
         set_led_color green
         
         boot_sequence_log_info "=== SECURE BOOT SEQUENCE COMPLETED SUCCESSFULLY ==="
-        return 0
+        return $RC_OK
     else
         # FAILURE: System integrity compromised
         boot_sequence_log_error "Step 3: Boot sequence FAILED - initiating system halt"
@@ -118,7 +119,7 @@ boot_sequence_check() {
         system_halt
         
         # This should never be reached due to infinite loop in system_halt
-        return 2
+        return $RC_BOOT_FAILED
     fi
 }
 
