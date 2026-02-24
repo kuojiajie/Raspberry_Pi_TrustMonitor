@@ -72,6 +72,9 @@ backup/attack_demo_*/
 /tmp/backdoor_*
 /tmp/pwned_*
 
+# Phase 2: v2.2.3 - Runtime state files (do not commit)
+.last_integrity_check
+
 # Demo and test artifacts
 *.demo.log
 demo_*.log

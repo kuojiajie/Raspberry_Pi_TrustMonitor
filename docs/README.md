@@ -22,4 +22,4 @@
 
 ---
 
-*Documentation is being expanded. Check back for new content and improvements.*
+*Documentation focused on user needs and practical usage.*

@@ -127,6 +127,7 @@ cp config/health-monitor.env.example config/health-monitor.env
 ```bash
 # Monitoring intervals (seconds)
 CHECK_INTERVAL=30                    # System monitoring frequency
+INTEGRITY_CHECK_INTERVAL=3600        # Integrity check frequency (1 hour, separate from monitoring)
 SENSOR_MONITOR_INTERVAL=60           # Hardware monitoring frequency
 
 # System thresholds
@@ -205,20 +206,20 @@ For detailed technical documentation, see the `docs/` directory:
 
 ## 📋 Version Information
 
-**Current Version**: v2.2.2 - Unified Return Code Constants
+**Current Version**: v2.2.3 - Integrity Check Efficiency Optimization
 
 ### Recent Releases
+- **v2.2.3**: Separated integrity check frequency from monitoring cycle for improved performance
 - **v2.2.2**: Unified return code constants across all components
 - **v2.2.1**: README simplification and documentation restructure
 - **v2.2.0**: ROT Attack/Defense Demo with full security validation
 - **v2.1.0**: RSA-sha256 Digital Signature System
 - **v2.0.0**: ROT Security Core with Secure Boot sequence
 
-### v2.2.2 Changes
-- **Unified Return Codes**: Standardized exit codes (RC_OK, RC_WARN, RC_ERROR, etc.)
-- **Enhanced Logging**: Return code descriptions integrated into log messages
-- **Better Error Handling**: Categorized error codes for debugging and monitoring
-- **Consistent Interface**: All plugins and modules use same return code system
-- **Utility Functions**: Helper functions for return code validation and logging
+### v2.2.3 Changes
+- **Performance Optimization**: Integrity checks now run on separate configurable interval (default: 1 hour)
+- **Reduced CPU Usage**: Eliminated redundant integrity verification in every monitoring cycle  
+- **Improved Efficiency**: System monitoring continues independently of security checks
+- **Configurable Frequency**: New `INTEGRITY_CHECK_INTERVAL` environment variable for tuning performance vs security
 
 *For complete version history, see git tags and commit log*

@@ -217,7 +217,7 @@ verify_signature() {
         
         return 0
     else
-        sign_log_error "❌ Signature verification FAILED"
+        sign_log_error "📍 Signature verification FAILED"
         sign_log_error "Possible causes:"
         sign_log_error "  - Manifest file has been modified"
         sign_log_error "  - Signature file is corrupted"

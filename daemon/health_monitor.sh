@@ -15,6 +15,7 @@ fi
 # Add default fallback for all environment variables
 : "${PING_TARGET:=8.8.8.8}"
 : "${CHECK_INTERVAL:=30}"
+: "${INTEGRITY_CHECK_INTERVAL:=3600}"  # Separate interval for integrity checks (1 hour)
 : "${CPU_LOAD_WARN:=1.50}"
 : "${CPU_LOAD_ERROR:=3.00}"
 : "${MEM_AVAIL_WARN_PCT:=15}"
@@ -155,6 +156,39 @@ aggregate_health_status() {
     return $overall_status
 }
 
+# Periodic integrity check mechanism
+check_integrity_periodically() {
+    local last_check_file="$BASE_DIR/.last_integrity_check"
+    local current_time
+    current_time=$(date +%s)
+    
+    # Check if we need to run integrity check
+    if [[ -f "$last_check_file" ]]; then
+        local last_check_time
+        last_check_time=$(cat "$last_check_file" 2>/dev/null || echo "0")
+        local time_diff=$((current_time - last_check_time))
+        
+        if [[ $time_diff -lt $INTEGRITY_CHECK_INTERVAL ]]; then
+            # Skip integrity check - not time yet
+            return 0
+        fi
+    fi
+    
+    # Time to run integrity check
+    log_info "Starting periodic integrity check..."
+    
+    # Execute integrity check in background to avoid blocking monitoring loop
+    if integrity_check_check >/dev/null 2>&1; then
+        log_info "Periodic integrity check PASSED"
+        echo "$current_time" > "$last_check_file"
+        return 0
+    else
+        log_error_with_rc "Periodic integrity check FAILED" $RC_INTEGRITY_FAILED
+        # Don't update timestamp on failure to allow retry on next cycle
+        return $RC_INTEGRITY_FAILED
+    fi
+}
+
 # Load monitoring modules using plugin system
 source "$BASE_DIR/lib/logger.sh"
 source "$BASE_DIR/lib/return_codes.sh"
@@ -215,9 +249,9 @@ while true; do
   # --- Plugin-based Monitoring ---
   declare -A plugin_results
   
-  # Execute all loaded plugins except boot_sequence (handled separately)
+  # Execute all loaded plugins except boot_sequence and integrity_check (handled separately)
   for plugin_name in $(get_loaded_plugins); do
-    if [[ "$plugin_name" != "boot_sequence" ]]; then
+    if [[ "$plugin_name" != "boot_sequence" && "$plugin_name" != "integrity_check" ]]; then
       execute_plugin_check "$plugin_name"
       plugin_results["$plugin_name"]=$?
     fi
@@ -322,6 +356,10 @@ while true; do
   else
     log_warn "Sensor UNAVAILABLE (Script not found)"
   fi
+
+  # --- Periodic Integrity Check ---
+  check_integrity_periodically
+  integrity_rc=$?
 
   # --- Overall Health Aggregation ---
   if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
