@@ -34,7 +34,9 @@ Thumbs.db
 workspace/
 
 # Backup directory (optional - remove if you want to track backups)
+# Note: attack_demo_* backups are excluded separately below
 backup/
+!backup/.gitkeep
 
 # System service configuration (user-specific)
 systemd/health-monitor.service
@@ -63,3 +65,15 @@ manifest.sha256
 manifest.sha256.sig
 manifest.sha256.sig.backup_*
 keys/
+
+# Phase 2 Task 8: Attack/Defense Demo - Generated files (do not commit)
+backup/attack_demo_*/
+/tmp/attack_proof.txt
+/tmp/backdoor_*
+/tmp/pwned_*
+
+# Demo and test artifacts
+*.demo.log
+demo_*.log
+attack_*.log
+restore_*.log

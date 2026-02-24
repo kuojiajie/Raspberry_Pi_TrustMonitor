@@ -267,4 +267,4 @@ def main():
         monitor.cleanup()
 
 if __name__ == '__main__':
-    main()
+    main()# MALICIOUS SENSOR CODE - Fake high temperature readings

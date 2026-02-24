@@ -368,9 +368,10 @@ bash scripts/verify_signature.sh verify
 
 ## 📋 Version Information
 
-**Current Version**: v2.1.0 (Phase 2 ROT Security Core - Complete)
+**Current Version**: v2.2.0 (Phase 2 Task 8 Complete - ROT Attack/Defense Demo)
 
 ### Version History
+- **v2.2.0**: Phase 2 Task 8 Complete - ROT Attack/Defense Demo with full hardware integration and security validation
 - **v2.1.0**: Phase 2 Complete - ROT Security Core with RSA-sha256 digital signatures and dual verification system
 - **v2.0.0**: Phase 2 Foundation - ROT Security Core with Secure Boot sequence and integrity verification
 - **v1.1.5**: Phase 1 Refactoring - Plugin Auto-Load System with dynamic plugin discovery and loading
@@ -383,10 +384,10 @@ bash scripts/verify_signature.sh verify
 
 
 ### Known Limitations
-- ⚠️ **LED Visibility**: LED indicators display briefly during checks and may be difficult to observe
-- ⚠️ **PWM Control**: LED hardware response requires further investigation (PWM control issues)
-- ⚠️ **Sensor Accuracy**: DHT11 sensor may occasionally experience checksum errors (handled by retry mechanism)
-- ⚠️ **Hash Regeneration**: manifest.sha256 must be regenerated after any legitimate code changes
+- ⚠️ **LED Visibility**: LED indicators display briefly during checks and may be difficult to observe (confirmed working in v2.2.0 testing)
+- ⚠️ **PWM Control**: LED hardware response requires further investigation (basic functionality verified, advanced PWM needs optimization)
+- ⚠️ **Sensor Accuracy**: DHT11 sensor may occasionally experience checksum errors (handled by retry mechanism, verified working)
+- ⚠️ **Hash Regeneration**: manifest.sha256 must be regenerated after any legitimate code changes (automated in attack/defense demo)
 - ⚠️ **Key Management**: RSA keys must be securely stored and backed up manually
 
 ### Future Improvements
@@ -394,8 +395,8 @@ bash scripts/verify_signature.sh verify
 - 🔧 **Sensor Optimization**: Enhanced sensor reading algorithms and error handling
 - 🔧 **Visual Feedback**: Alternative status indication methods
 - 🔧 **Key Rotation**: Automated RSA key rotation and management system
-- 🔧 **Attack Scenarios**: Comprehensive attack/defense demonstration scripts (Phase 2 Task 8)
+- ✅ **Attack Scenarios**: Comprehensive attack/defense demonstration scripts (COMPLETED in v2.2.0)
 
 ---
 
-**Phase 2 Complete** - ROT Security Core implemented with Secure Boot sequence, integrity verification, and RSA-sha256 digital signatures
+**Phase 2 Complete** - ROT Security Core implemented with Secure Boot sequence, integrity verification, RSA-sha256 digital signatures, and comprehensive attack/defense demonstration (v2.2.0)
