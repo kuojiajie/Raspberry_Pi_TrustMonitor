@@ -206,9 +206,10 @@ For detailed technical documentation, see the `docs/` directory:
 
 ## 📋 Version Information
 
-**Current Version**: v2.2.3 - Integrity Check Efficiency Optimization
+**Current Version**: v2.2.4 - Backup File Automatic Cleanup System
 
 ### Recent Releases
+- **v2.2.4**: Unified backup management with automatic cleanup and retention policies
 - **v2.2.3**: Separated integrity check frequency from monitoring cycle for improved performance
 - **v2.2.2**: Unified return code constants across all components
 - **v2.2.1**: README simplification and documentation restructure
@@ -216,10 +217,13 @@ For detailed technical documentation, see the `docs/` directory:
 - **v2.1.0**: RSA-sha256 Digital Signature System
 - **v2.0.0**: ROT Security Core with Secure Boot sequence
 
-### v2.2.3 Changes
-- **Performance Optimization**: Integrity checks now run on separate configurable interval (default: 1 hour)
-- **Reduced CPU Usage**: Eliminated redundant integrity verification in every monitoring cycle  
-- **Improved Efficiency**: System monitoring continues independently of security checks
-- **Configurable Frequency**: New `INTEGRITY_CHECK_INTERVAL` environment variable for tuning performance vs security
+### v2.2.4 Changes
+- **Unified Backup System**: All backup files consolidated to `backup/` directory with organized structure
+- **Automatic Cleanup**: Time-based and count-based retention policies prevent disk space issues
+- **Backup Categories**: Separation of security backups (`backup/security/`) and demo backups (`backup/attack_demo/`)
+- **Retention Policies**: Configurable retention settings (7 days for security, 3 days for demos)
+- **Cleanup Plugin**: New `scripts/backup_cleanup.sh` plugin for automatic maintenance
+- **Enhanced Tools**: Updated `sign_manifest.sh` and `attack.sh` to use unified backup system
+- **Storage Statistics**: Built-in backup usage reporting and monitoring
 
 *For complete version history, see git tags and commit log*

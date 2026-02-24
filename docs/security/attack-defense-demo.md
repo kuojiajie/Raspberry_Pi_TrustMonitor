@@ -5,6 +5,17 @@
 
 Demonstrate the effectiveness of TrustMonitor's ROT (Root of Trust) security mechanisms through realistic attack scenarios and recovery procedures.
 
+## 🆕 v2.2.4 Backup System Update
+
+The attack demo now uses the unified backup management system introduced in v2.2.4:
+
+- **Automatic Backup Creation**: All attacks automatically create backups in `backup/attack_demo/YYYYMMDD_HHMMSS/`
+- **Dual Backup Strategy**: Creates both demo backup and security backup for maximum protection
+- **Organized Storage**: Backups are properly categorized and managed with retention policies
+- **Easy Recovery**: Use `tools/restore.sh --auto` for automatic recovery from the latest backup
+
+For detailed backup management information, see [Backup Management Documentation](../backup-management.md).
+
 ## 🛡️ Security Features Tested
 
 ### 1. **SHA256 File Integrity Verification**

@@ -105,13 +105,19 @@ check_required_files() {
     fi
 }
 
-# Backup existing signature
+# Load backup manager
+source "$BASE_DIR/lib/backup_manager.sh"
+
+# Backup existing signature using unified backup system
 backup_existing_signature() {
     if [[ -f "$SIGNATURE_FILE" ]]; then
-        local backup_file="${SIGNATURE_FILE}.backup_$(date +%Y%m%d_%H%M%S)"
         sign_log_warn "Existing signature found, creating backup..."
-        cp "$SIGNATURE_FILE" "$backup_file"
-        sign_log_info "Signature backed up to: $backup_file"
+        
+        # Use unified backup system
+        local backup_result
+        backup_result=$(create_security_backup)
+        sign_log_info "Signature backed up using unified backup system"
+        sign_log_info "Backup location: $backup_result"
     fi
 }
 

@@ -57,7 +57,10 @@ show_usage() {
     echo "  $0 --verify         # Check system integrity"
 }
 
-# Create backup directory
+# Load backup manager
+source "$PROJECT_ROOT/lib/backup_manager.sh"
+
+# Create backup directory using unified backup system
 create_backup() {
     log_info "Creating backup directory: $BACKUP_DIR"
     mkdir -p "$BACKUP_DIR"
@@ -80,6 +83,10 @@ create_backup() {
     done
     
     log_info "Backup completed: $BACKUP_DIR"
+    
+    # Also create security backup
+    log_info "Creating additional security backup..."
+    create_security_backup >/dev/null
 }
 
 # Attack Scenario 1: Malicious Code Injection

@@ -63,11 +63,14 @@ health_monitor_*.log
 # Phase 2: ROT Security - Generated files (do not commit)
 manifest.sha256
 manifest.sha256.sig
-manifest.sha256.sig.backup_*
 keys/
 
+# Phase 2: v2.2.4 - Unified backup system (do not commit)
+backup/security/
+backup/attack_demo_*
+backup/security_test_*
+
 # Phase 2 Task 8: Attack/Defense Demo - Generated files (do not commit)
-backup/attack_demo_*/
 /tmp/attack_proof.txt
 /tmp/backdoor_*
 /tmp/pwned_*
