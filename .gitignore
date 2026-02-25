@@ -1,27 +1,125 @@
-# Local environment (do not commit - fallback values are built-in)
+# ==============================================================================
+# TrustMonitor .gitignore
+# ==============================================================================
+# Organized by category with clear sections and explanations
+
+# ==============================================================================
+# 🚫 CONFIGURATION & ENVIRONMENT
+# ==============================================================================
+# Local environment files (user-specific settings)
 config/health-monitor.env
 config/health-monitor.env.*
+.env
+.env.local
+.env.development
+.env.test
+.env.production
 
-# Logs
-logs/*.log
-*.log
+# System service configuration (user-specific paths)
+systemd/health-monitor.service
 
-# Python cache
-__pycache__/
-*.py[cod]
-*.so
+# ==============================================================================
+# 🚫 RUNTIME & STATE FILES
+# ==============================================================================
+# Runtime state files (generated during operation)
+.last_integrity_check
+.last_shutdown
+*.pid
 
-# IDE and editor files
-.vscode/
-.idea/
+# Temporary files
+*.temp
+*.cache
+*.out
+*.tmp
+*.bak
 *.swp
 *.swo
 *~
-*.bak
-*.tmp
-*.pid
 
-# OS specific files
+# ==============================================================================
+# 🚫 LOGS & OUTPUTS
+# ==============================================================================
+# Log files
+logs/
+*.log
+
+# Test and demo logs
+*_test.log
+*_format_test.log
+*.demo.log
+demo_*.log
+attack_*.log
+restore_*.log
+test_*.log
+sigterm_test.log
+network_format_test.log
+return_codes_test.log
+hal_core_test_*.log
+hal_test_*.log
+hardware_functionality_*.log
+system_hardware_integration_*.log
+system_integration_*.log
+health_monitor_*.log
+
+# ==============================================================================
+# 🚫 SECURITY & BACKUP FILES
+# ==============================================================================
+# Security files (generated, should not be committed)
+manifest.sha256
+manifest.sha256.sig
+keys/
+
+# Backup directories (generated, should not be committed)
+backup/
+!backup/.gitkeep
+
+# Attack demo artifacts (generated during security testing)
+/tmp/attack_proof.txt
+/tmp/backdoor_*
+/tmp/pwned_*
+
+# ==============================================================================
+# 🚫 DEVELOPMENT & BUILD ARTIFACTS
+# ==============================================================================
+# Python cache and build files
+__pycache__/
+*.py[cod]
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==============================================================================
+# 🚫 IDE & EDITOR FILES
+# ==============================================================================
+# IDE configuration
+.vscode/
+.idea/
+*.sublime-*
+*.atom/
+
+# Editor backup files
+*~
+*.orig
+*.rej
+
+# ==============================================================================
+# 🚫 OPERATING SYSTEM FILES
+# ==============================================================================
+# macOS
 .DS_Store
 .DS_Store?
 ._*
@@ -30,72 +128,30 @@ __pycache__/
 ehthumbs.db
 Thumbs.db
 
+# Windows
+*.lnk
+
+# Linux
+*~
+
+# ==============================================================================
+# 🚫 PROJECT SPECIFIC
+# ==============================================================================
 # Hardware testing workspace
 workspace/
-
-# Backup directory (optional - remove if you want to track backups)
-# Note: attack_demo_* backups are excluded separately below
-backup/
-!backup/.gitkeep
-
-# System service configuration (user-specific)
-systemd/health-monitor.service
-
-# Temporary files
-*.temp
-*.cache
-*.out
-
-# Environment variables
-.env
-.env.local
-.env.development
-.env.test
-.env.production
 
 # Hardware module cache
 hardware/__pycache__/
 
-# Plugin system test files
-*.test.log
-health_monitor_*.log
+# Documentation build artifacts
+docs/_build/
+site/
 
-# Phase 2: ROT Security - Generated files (do not commit)
-manifest.sha256
-manifest.sha256.sig
-keys/
-
-# Phase 2: v2.2.4 - Unified backup system (do not commit)
-backup/security/
-backup/attack_demo_*
-backup/security_test_*
-
-# Phase 2 Task 8: Attack/Defense Demo - Generated files (do not commit)
-/tmp/attack_proof.txt
-/tmp/backdoor_*
-/tmp/pwned_*
-
-# Phase 2: v2.2.3 - Runtime state files (do not commit)
-.last_integrity_check
-.last_shutdown
-
-# Demo and test artifacts
-*.demo.log
-demo_*.log
-attack_*.log
-restore_*.log
-test_*.log
-*_format_test.log
-*_test.log
-sigterm_test.log
-network_format_test.log
-
-# Phase 3: Return code constants (implementation files tracked, test outputs excluded)
-return_codes_test.log
-
-# Phase 3: v2.2.6 - HAL Refactoring (test outputs excluded)
-hal_core_test_*.log
-hal_test_*.log
-hardware_functionality_*.log
-system_hardware_integration_*.log
-system_integration_*.log
+# ==============================================================================
+# 📋 NOTES
+# ==============================================================================
+# - backup/ directory is excluded but .gitkeep is preserved to maintain directory structure
+# - Security files (manifest.sha256, keys/) are generated and should not be committed
+# - Runtime state files are generated during operation and should not be committed
+# - All log files are excluded to keep repository clean
+# - IDE and OS files are excluded for cross-platform compatibility

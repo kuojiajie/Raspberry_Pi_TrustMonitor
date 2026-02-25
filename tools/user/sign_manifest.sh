@@ -5,24 +5,20 @@
 
 set -u
 
-# Script directory and project base
+# Load TrustMonitor initialization system
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/../../lib/trustmon_init.sh"
 
-# Load environment variables (if exists)
-ENV_FILE="$BASE_DIR/config/health-monitor.env"
-if [[ -f "$ENV_FILE" ]]; then
-    # shellcheck disable=SC1090
-    source "$ENV_FILE"
-fi
+# Initialize this script
+init_trustmon_script "sign_manifest.sh"
 
-# Load logger
-source "$BASE_DIR/lib/logger.sh"
+# Load environment variables
+load_script_config "sign_manifest.sh"
 
-# Configuration
-MANIFEST_FILE="${MANIFEST_FILE:-$BASE_DIR/manifest.sha256}"
-SIGNATURE_FILE="${SIGNATURE_FILE:-$BASE_DIR/manifest.sha256.sig}"
-PRIVATE_KEY_FILE="${PRIVATE_KEY_FILE:-$BASE_DIR/keys/private_key.pem}"
+# Configuration (using unified path manager)
+MANIFEST_FILE="$MANIFEST_FILE"           # From path_manager.sh
+SIGNATURE_FILE="$SIGNATURE_FILE"       # From path_manager.sh
+PRIVATE_KEY_FILE="$KEYS_DIR/private_key.pem"  # From path_manager.sh
 HASH_ALGORITHM="${HASH_ALGORITHM:-sha256}"
 
 # Logging functions
@@ -106,7 +102,7 @@ check_required_files() {
 }
 
 # Load backup manager
-source "$BASE_DIR/lib/backup_manager.sh"
+source "$LIB_DIR/backup_manager.sh"
 
 # Backup existing signature using unified backup system
 backup_existing_signature() {
@@ -196,7 +192,7 @@ verify_signature() {
     fi
     
     # Find public key file
-    local public_key_file="${PUBLIC_KEY_FILE:-$BASE_DIR/keys/public_key.pem}"
+    local public_key_file="${PUBLIC_KEY_FILE:-$KEYS_DIR/public_key.pem}"
     if [[ ! -f "$public_key_file" ]]; then
         sign_log_error "Public key not found: $public_key_file"
         exit 1
@@ -242,7 +238,7 @@ display_verification_help() {
     sign_log_info "4. Verify key pair matches"
     
     # Show key pair verification
-    local public_key_file="${PUBLIC_KEY_FILE:-$BASE_DIR/keys/public_key.pem}"
+    local public_key_file="${PUBLIC_KEY_FILE:-$KEYS_DIR/public_key.pem}"
     if [[ -f "$public_key_file" ]]; then
         sign_log_info "Public key fingerprint: $(openssl pkey -pubin -in "$public_key_file" -outform DER 2>/dev/null | openssl dgst -sha256 -hex | cut -d' ' -f2)"
     fi

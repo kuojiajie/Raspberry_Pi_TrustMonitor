@@ -5,9 +5,12 @@
 
 set -euo pipefail
 
-# Configuration
+# Load TrustMonitor initialization system
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/../../lib/trustmon_init.sh"
+
+# Initialize this script
+init_trustmon_script "restore.sh"
 
 # Logging functions
 log_info() {
@@ -70,10 +73,10 @@ clean_attack_artifacts() {
     done
     
     # Clean any corrupted signature files
-    if [[ -f "$PROJECT_ROOT/manifest.sha256.sig" ]]; then
+    if [[ -f "$MANIFEST_FILE.sig" ]]; then
         # Check if signature is fake
-        if grep -q "FAKE_SIGNATURE" "$PROJECT_ROOT/manifest.sha256.sig" 2>/dev/null; then
-            rm -f "$PROJECT_ROOT/manifest.sha256.sig"
+        if grep -q "FAKE_SIGNATURE" "$MANIFEST_FILE.sig" 2>/dev/null; then
+            rm -f "$MANIFEST_FILE.sig"
             log_info "✅ Removed fake signature file"
         fi
     fi
@@ -85,7 +88,7 @@ clean_attack_artifacts() {
 list_backups() {
     log_info "=== AVAILABLE BACKUPS ==="
     
-    local backup_dir="$PROJECT_ROOT/backup"
+    local backup_dir="$BACKUP_DIR"
     if [[ ! -d "$backup_dir" ]]; then
         log_warn "No backup directory found"
         return 1
@@ -191,7 +194,7 @@ regenerate_security_files() {
     
     # Generate new hash manifest
     log_info "Generating new hash manifest..."
-    if bash "$PROJECT_ROOT/tools/gen_hash.sh" generate; then
+    if bash "$PROJECT_ROOT/tools/user/gen_hash.sh" generate; then
         log_info "✅ Hash manifest regenerated"
     else
         log_error "❌ Failed to generate hash manifest"
@@ -201,7 +204,7 @@ regenerate_security_files() {
     # Generate new key pair if needed
     if [[ ! -f "$PROJECT_ROOT/keys/private_key.pem" ]] || [[ ! -f "$PROJECT_ROOT/keys/public_key.pem" ]]; then
         log_info "Generating new RSA key pair..."
-        if bash "$PROJECT_ROOT/tools/gen_keypair.sh" generate; then
+        if bash "$PROJECT_ROOT/tools/user/gen_keypair.sh" generate; then
             log_info "✅ RSA key pair generated"
         else
             log_error "❌ Failed to generate RSA key pair"
@@ -211,7 +214,7 @@ regenerate_security_files() {
     
     # Create new signature
     log_info "Creating new digital signature..."
-    if bash "$PROJECT_ROOT/tools/sign_manifest.sh" sign; then
+    if bash "$PROJECT_ROOT/tools/user/sign_manifest.sh" sign; then
         log_info "✅ Digital signature created"
     else
         log_error "❌ Failed to create digital signature"

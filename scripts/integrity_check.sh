@@ -5,29 +5,26 @@
 
 set -u
 
-# Load environment variables for standalone execution
+# Load TrustMonitor initialization system
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/../lib/trustmon_init.sh"
 
-# Load environment variables (if exists)
-ENV_FILE="$BASE_DIR/config/health-monitor.env"
-if [[ -f "$ENV_FILE" ]]; then
-    # shellcheck disable=SC1090
-    source "$ENV_FILE"
-fi
+# Initialize this script
+init_trustmon_script "integrity_check.sh"
 
-# Load logger and return codes
-source "$BASE_DIR/lib/logger.sh"
-source "$BASE_DIR/lib/return_codes.sh"
-source "$BASE_DIR/scripts/verify_signature.sh"
+# Load environment variables
+load_script_config "integrity_check.sh"
+
+# Load signature verification module
+source "$SCRIPT_DIR/../scripts/verify_signature.sh"
 
 # Plugin metadata
 integrity_check_description() {
     echo "Verifies file integrity using SHA256 hash comparison and digital signature verification"
 }
 
-# Configuration
-MANIFEST_FILE="$BASE_DIR/manifest.sha256"
+# Configuration (using path manager)
+MANIFEST_FILE="$MANIFEST_FILE"  # From path_manager.sh
 
 # Plugin-specific logging (using standard log functions)
 integrity_check_log_info() {

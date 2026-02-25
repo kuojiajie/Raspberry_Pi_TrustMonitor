@@ -4,13 +4,15 @@
 
 set -u
 
-BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# Load environment file when running manually (development-friendly)
-ENV_FILE="$BASE_DIR/config/health-monitor.env"
-if [[ -z "${PING_TARGET:-}" && -f "$ENV_FILE" ]]; then
-  # shellcheck disable=SC1090
-  source "$ENV_FILE"
-fi
+# Load TrustMonitor initialization system
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/trustmon_init.sh"
+
+# Initialize this script
+init_trustmon_script "health_monitor.sh"
+
+# Load environment variables
+load_script_config "health_monitor.sh"
 
 # Add default fallback for all environment variables
 : "${PING_TARGET:=8.8.8.8}"
@@ -158,7 +160,7 @@ aggregate_health_status() {
 
 # Periodic integrity check mechanism
 check_integrity_periodically() {
-    local last_check_file="$BASE_DIR/.last_integrity_check"
+    local last_check_file="$LAST_INTEGRITY_CHECK_FILE"
     local current_time
     current_time=$(date +%s)
     
@@ -203,16 +205,13 @@ check_integrity_periodically() {
 }
 
 # Load monitoring modules using plugin system
-source "$BASE_DIR/lib/logger.sh"
-source "$BASE_DIR/lib/return_codes.sh"
-source "$BASE_DIR/lib/plugin_loader.sh"
-
-# Auto-load all monitoring plugins
-PLUGIN_DIR="$BASE_DIR/scripts"
+# Note: logger.sh, return_codes.sh, and plugin_loader.sh are already loaded by trustmon_init.sh
+PLUGIN_DIR="$SCRIPTS_DIR"
+source "$LIB_DIR/plugin_loader.sh"
 load_plugins_from_dir "$PLUGIN_DIR"
 
 # Load hardware sensor modules (if available)
-SENSOR_SCRIPT="$BASE_DIR/hardware/sensor_monitor.py"
+SENSOR_SCRIPT="$HARDWARE_DIR/sensor_monitor.py"
 if [[ -f "$SENSOR_SCRIPT" ]]; then
     SENSOR_AVAILABLE=true
 else
@@ -298,14 +297,14 @@ cleanup_hardware_resources() {
     fi
     
     # Turn off LED using HAL (v2.2.6+) or legacy method
-    if [[ -f "$BASE_DIR/hardware/hal_led_controller.py" ]]; then
+    if [[ -f "$HARDWARE_DIR/hal_led_controller.py" ]]; then
         log_info "Turning off LED using HAL..."
-        timeout 3 python3 "$BASE_DIR/hardware/hal_led_controller.py" --off >/dev/null 2>&1 &
+        timeout 3 python3 "$HARDWARE_DIR/hal_led_controller.py" --off >/dev/null 2>&1 &
         local led_cleanup_pid=$!
         wait "$led_cleanup_pid" 2>/dev/null || true
     elif [[ -f "$SENSOR_SCRIPT" ]]; then
         log_info "Turning off LED using legacy method..."
-        timeout 3 python3 "$BASE_DIR/hardware/led_controller.py" --off >/dev/null 2>&1 &
+        timeout 3 python3 "$HARDWARE_DIR/led_controller.py" --off >/dev/null 2>&1 &
         local led_cleanup_pid=$!
         wait "$led_cleanup_pid" 2>/dev/null || true
     fi
@@ -331,7 +330,7 @@ save_state_files() {
     log_info "Saving state files..."
     
     # Ensure integrity check timestamp is saved
-    local last_check_file="$BASE_DIR/.last_integrity_check"
+    local last_check_file="$LAST_INTEGRITY_CHECK_FILE"
     if [[ ! -f "$last_check_file" ]]; then
         # Create with current time if doesn't exist
         date +%s > "$last_check_file" 2>/dev/null || true
@@ -339,13 +338,13 @@ save_state_files() {
     fi
     
     # Save shutdown timestamp
-    local shutdown_file="$BASE_DIR/.last_shutdown"
+    local shutdown_file="$PROJECT_ROOT/.last_shutdown"
     date '+%Y-%m-%d %H:%M:%S' > "$shutdown_file" 2>/dev/null || true
     log_info "Saved shutdown timestamp"
     
     # Clean up any temporary files
-    find "$BASE_DIR" -name "*.tmp" -type f -delete 2>/dev/null || true
-    find "$BASE_DIR" -name "*.pid" -type f -delete 2>/dev/null || true
+    find "$PROJECT_ROOT" -name "*.tmp" -type f -delete 2>/dev/null || true
+    find "$PROJECT_ROOT" -name "*.pid" -type f -delete 2>/dev/null || true
 }
 
 # Signal handlers
@@ -363,7 +362,7 @@ plugin_system_info
 
 # --- Secure Boot Sequence (Phase 2 ROT Security) ---
 log_info "Starting Secure Boot sequence..."
-source "$BASE_DIR/scripts/boot_sequence.sh"
+source "$SCRIPTS_DIR/boot_sequence.sh"
 
 # Execute boot sequence check
 if ! boot_sequence_check; then
@@ -472,14 +471,14 @@ while true; do
     sensor_rc=$RC_OK
     
     # Try HAL-based sensor monitoring first (v2.2.6+)
-    if [[ -f "$BASE_DIR/hardware/hal_sensor_monitor.py" ]]; then
+    if [[ -f "$HARDWARE_DIR/hal_sensor_monitor.py" ]]; then
         # Execute HAL sensor monitoring in background
-        python3 "$BASE_DIR/hardware/hal_sensor_monitor.py" --test >/dev/null 2>&1 &
-        local sensor_pid=$!
+        python3 "$HARDWARE_DIR/hal_sensor_monitor.py" --test >/dev/null 2>&1 &
+        sensor_pid=$!
         register_hardware_process "$sensor_pid"
         
         # Wait for sensor reading with timeout
-        local sensor_wait_count=0
+        sensor_wait_count=0
         while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt 10 ]]; do
             sleep 1
             ((sensor_wait_count++))
@@ -488,7 +487,7 @@ while true; do
         # Check result and get output
         if wait "$sensor_pid" 2>/dev/null; then
             # Parse HAL sensor reading results
-            sensor_output=$(python3 "$BASE_DIR/hardware/hal_sensor_monitor.py" --test 2>&1)
+            sensor_output=$(python3 "$HARDWARE_DIR/hal_sensor_monitor.py" --test 2>&1)
             if echo "$sensor_output" | grep -q "Sensor read successful"; then
                 temp=$(echo "$sensor_output" | grep -E "Temperature: ([0-9.]+)°C" | sed -r 's/.*Temperature: ([0-9.]+)°C.*/\1/')
                 humidity=$(echo "$sensor_output" | grep -E "Humidity: ([0-9.]+)%" | sed -r 's/.*Humidity: ([0-9.]+)%.*/\1/')
@@ -504,11 +503,11 @@ while true; do
     else
         # Fallback to legacy sensor monitoring
         python3 "$SENSOR_SCRIPT" --test >/dev/null 2>&1 &
-        local sensor_pid=$!
+        sensor_pid=$!
         register_hardware_process "$sensor_pid"
         
         # Wait for sensor reading with timeout
-        local sensor_wait_count=0
+        sensor_wait_count=0
         while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt 10 ]]; do
             sleep 1
             ((sensor_wait_count++))

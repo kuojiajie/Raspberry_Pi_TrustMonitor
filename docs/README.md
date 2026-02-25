@@ -8,8 +8,10 @@
 ### 🔧 System Documentation
 - **[HAL System](hal-system.md)** - Hardware Abstraction Layer architecture and usage
 - **[Backup Management](backup-management.md)** - Unified backup system with automatic cleanup and retention policies
-- **[Return Code System](return-codes.md)** - Unified return code constants and error handling
 - **[Testing Guide](testing.md)** - Comprehensive testing suite and validation procedures
+
+### 📋 Reference Documentation
+- **[Return Codes](../lib/return_codes.sh)** - Unified return code constants and error handling (see file header documentation)
 
 ## 🎯 Quick Links
 
@@ -17,8 +19,8 @@
 - **Security Demo**: [Attack/Defense Demo](security/attack-defense-demo.md) for comprehensive security testing
 - **HAL System**: [HAL System](hal-system.md) for hardware abstraction layer documentation
 - **Backup Management**: [Backup Management](backup-management.md) for backup system configuration
-- **Return Codes**: [Return Code System](return-codes.md) for error handling reference
 - **Testing Guide**: [Testing Guide](testing.md) for development and validation procedures
+- **Return Codes**: [Return Codes](../lib/return_codes.sh) for error handling reference
 
 ## 📖 Getting Started
 
@@ -26,7 +28,7 @@
 2. **HAL Development**: See [HAL System](hal-system.md) for hardware abstraction layer usage
 3. **Security Testing**: Follow the [Attack/Defense Demo](security/attack-defense-demo.md) for security validation
 4. **Backup Management**: See [Backup Management](backup-management.md) for backup system configuration
-5. **Development**: See [Return Code System](return-codes.md) for understanding error handling
+5. **Development**: See [Return Codes](../lib/return_codes.sh) for understanding error handling
 6. **Testing**: Use the [Testing Guide](testing.md) for development and validation procedures
 
 ---

@@ -10,7 +10,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 
-# Run as a non-root user (recommended)
+# Run as a non-root user (update to your actual user)
 User=your_user
 Group=your_user
 

@@ -2,6 +2,39 @@
 # lib/return_codes.sh
 # Unified return code constants for TrustMonitor system
 # Provides standardized exit codes across all components
+#
+# RETURN CODE SYSTEM:
+# TrustMonitor uses a unified return code system to provide consistent error handling
+# and status reporting across all components.
+#
+# CORE SYSTEM CODES:
+#   0 | RC_OK           | Operation successful
+#   1 | RC_WARN         | Warning condition
+#   2 | RC_ERROR        | Error condition  
+#   3 | RC_PLUGIN_ERROR | Plugin system error
+#
+# ROT SECURITY CODES:
+#   4 | RC_INTEGRITY_FAILED    | File integrity verification failed
+#   5 | RC_SIGNATURE_FAILED    | Digital signature verification failed
+#   6 | RC_BOOT_FAILED         | Secure boot sequence failed
+#
+# HARDWARE CODES:
+#   7 | RC_SENSOR_ERROR | Sensor hardware error
+#   8 | RC_LED_ERROR    | LED hardware error
+#
+# NETWORK CODES:
+#   9 | RC_NETWORK_FAILED | Network connectivity failed
+#
+# CONFIGURATION CODES:
+#  10 | RC_CONFIG_ERROR     | Configuration error
+#  11 | RC_DEPENDENCY_ERROR | Missing dependencies
+#
+# USAGE:
+#   source "$LIB_DIR/return_codes.sh"
+#   exit $RC_INTEGRITY_FAILED
+#
+#   # With logging integration:
+#   log_error_with_rc "System integrity check failed" $RC_INTEGRITY_FAILED
 
 set -u
 

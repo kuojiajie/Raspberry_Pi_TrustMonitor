@@ -5,23 +5,19 @@
 
 set -u
 
-# Script directory and project base
+# Load TrustMonitor initialization system
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/../../lib/trustmon_init.sh"
 
-# Load environment variables (if exists)
-ENV_FILE="$BASE_DIR/config/health-monitor.env"
-if [[ -f "$ENV_FILE" ]]; then
-    # shellcheck disable=SC1090
-    source "$ENV_FILE"
-fi
+# Initialize this script
+init_trustmon_script "gen_keypair.sh"
 
-# Load logger
-source "$BASE_DIR/lib/logger.sh"
+# Load environment variables
+load_script_config "gen_keypair.sh"
 
-# Configuration
+# Configuration (using unified path manager)
 KEY_SIZE="${RSA_KEY_SIZE:-2048}"
-KEY_DIR="${RSA_KEY_DIR:-$BASE_DIR/keys}"
+KEY_DIR="$KEYS_DIR"  # From path_manager.sh
 PRIVATE_KEY_FILE="$KEY_DIR/private_key.pem"
 PUBLIC_KEY_FILE="$KEY_DIR/public_key.pem"
 

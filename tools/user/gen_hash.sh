@@ -5,10 +5,15 @@
 
 set -euo pipefail
 
-# Configuration
+# Load TrustMonitor initialization system
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-MANIFEST_FILE="$PROJECT_ROOT/manifest.sha256"
+source "$SCRIPT_DIR/../../lib/trustmon_init.sh"
+
+# Initialize this script
+init_trustmon_script "gen_hash.sh"
+
+# Configuration (using unified path manager)
+MANIFEST_FILE="$MANIFEST_FILE"  # From path_manager.sh
 
 # Logging function
 log_info() {
@@ -28,7 +33,9 @@ generate_manifest() {
     temp_manifest="$(mktemp)"
     
     # Find all .sh and .py files, excluding specific directories
-    while IFS= read -r -d '' file; do
+    find "$PROJECT_ROOT" -name "*.sh" -o -name "*.py" 2>/dev/null | \
+        grep -v -E "(__pycache__|\.git|backup|logs)" | \
+        while read -r file; do
         # Get relative path from project root
         local rel_path
         rel_path="${file#$PROJECT_ROOT/}"
@@ -40,13 +47,7 @@ generate_manifest() {
         # Add to manifest
         echo "$hash  $rel_path" >> "$temp_manifest"
         
-    done < <(find "$PROJECT_ROOT" \
-        -type f \
-        \( -name "*.sh" -o -name "*.py" \) \
-        ! -path "*/.git/*" \
-        ! -path "*/logs/*" \
-        ! -name "manifest.sha256" \
-        -print0 | sort -z)
+    done
     
     # Move temporary file to final location
     mv "$temp_manifest" "$MANIFEST_FILE"

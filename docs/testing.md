@@ -1,154 +1,114 @@
 # Testing Guide
 
-## 🧪 TrustMonitor Testing Suite
+## 🧪 TrustMonitor Development Testing Suite
 
 This document describes the comprehensive testing tools available for TrustMonitor validation and development.
 
-## 📋 Available Test Scripts
+## 📋 Quick Test Commands
 
-### v2.2.5 Feature Tests
-
-#### SIGTERM Graceful Shutdown Test
+### System Health Tests
 ```bash
-# Test graceful shutdown functionality
+# Test complete system integration
+bash tools/dev/test_system_integration.sh
+
+# Test hardware functionality
+bash tools/dev/test_system_hardware_integration.sh
+
+# Test HAL system (v2.2.6+)
+bash tools/dev/test_hal_core.sh
+```
+
+### Feature-Specific Tests
+```bash
+# Test graceful shutdown (SIGTERM)
 bash tools/dev/test_sigterm.sh
-```
 
-**What it tests:**
-- SIGTERM signal handling
-- Child process cleanup
-- Hardware resource cleanup (GPIO, LED)
-- State file preservation
-- Multiple signal scenarios
-
-**Expected Output:**
-- All 3 test scenarios should pass
-- Hardware cleanup messages in logs
-- Shutdown timestamps created
-
-#### Network Monitor Format Test
-```bash
-# Test network monitor output format consistency
+# Test network monitor format
 bash tools/dev/test_network_format.sh
+
+# Test system crash recovery
+bash tools/dev/crash_test.sh
 ```
 
-**What it tests:**
-- Standalone network monitor formats
-- Integration with health monitor
-- Format consistency across all monitoring scripts
-- Performance impact assessment
+## 🔧 Development Testing Workflow
 
-**Expected Output:**
-- All 4 test categories should pass
-- Network output format matches other monitors
-- Execution time < 10 seconds
-
-## 🔧 Integration Testing
-
-### Health Monitor Integration
+### Before Making Changes
 ```bash
-# Test full health monitor with timeout
-timeout 30 bash daemon/health_monitor.sh
+# 1. Run baseline tests
+bash tools/dev/test_system_integration.sh
+bash tools/dev/test_system_hardware_integration.sh
+
+# 2. Verify system integrity
+bash scripts/integrity_check.sh
+
+# 3. Test security features
+bash tools/security/attack.sh --list
 ```
 
-### Service Integration
+### After Making Changes
 ```bash
-# Test systemd service configuration
-sudo systemctl status health-monitor.service  # If installed
-sudo journalctl -u health-monitor.service -f  # View logs
-```
+# 1. Update system integrity
+bash tools/user/gen_hash.sh generate
+bash tools/user/sign_manifest.sh sign
 
-## 📊 Format Consistency Standards
+# 2. Run integration tests
+bash tools/dev/test_system_integration.sh
 
-All monitoring scripts should follow this output format:
-
-```
-# Line 1: Status Summary
-[COMPONENT] STATUS (metrics)
-
-# Line 2: Detailed Information  
-[Component] [metric]: [value], status code: [code]
-```
-
-**Examples:**
-```bash
-CPU OK (load1=0.81)
-CPU load: 0.81 status code: 0
-
-Network WARN (latency=250ms loss=5%)
-Network latency: 250ms, packet loss: 5%, status code: 1
-```
-
-## 🎯 Test Categories
-
-### 1. Unit Tests
-- Individual script functionality
-- Return code validation
-- Output format verification
-
-### 2. Integration Tests  
-- Plugin system loading
-- Health monitor orchestration
-- Hardware interaction
-
-### 3. Security Tests
-- Integrity verification
-- Digital signature validation
-- Attack/defense scenarios
-
-### 4. Performance Tests
-- Execution time measurement
-- Resource utilization
-- Memory leak detection
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Test fails with integrity check error:**
-```bash
-# Regenerate hashes and signatures
-bash tools/gen_hash.sh generate
-bash tools/sign_manifest.sh sign
-```
-
-**Hardware tests fail:**
-```bash
-# Check GPIO access
-python3 -c "import RPi.GPIO; print('GPIO OK')"
-```
-
-**Service integration issues:**
-```bash
-# Check systemd configuration
-sudo systemctl daemon-reload
+# 3. Verify service functionality
+sudo systemctl restart health-monitor.service
 sudo systemctl status health-monitor.service
 ```
 
-## 📝 Test Results Interpretation
+## 📊 Test Categories
 
-### Return Codes
-- `0` - Success (✅)
-- `1` - Warning (⚠️)  
-- `2` - Error (❌)
-- `3+` - Critical/System Error
+### Integration Tests
+- **System Integration**: Full health monitor workflow
+- **Hardware Integration**: Sensor and LED functionality
+- **HAL Integration**: Hardware abstraction layer testing
 
-### Test Log Locations
-- Unit tests: `logs/*_test.log`
-- Integration tests: `logs/health_monitor_test.log`
-- Format tests: `logs/*_format_test.log`
+### Feature Tests
+- **Graceful Shutdown**: SIGTERM handling and cleanup
+- **Network Format**: Output consistency validation
+- **Crash Recovery**: System resilience testing
 
-## 🚀 Continuous Testing
+### Security Tests
+- **Attack Scenarios**: 5 different attack simulations
+- **Integrity Verification**: Hash and signature validation
+- **Recovery Testing**: Backup and restore procedures
 
-For development, run tests after making changes:
+## 🚨 Expected Results
 
-```bash
-# Quick validation
-bash tools/dev/test_sigterm.sh
-bash tools/dev/test_network_format.sh
-
-# Full validation  
-bash tools/user/demo.sh quick
+### Successful Test Output
+```
+✅ All integration tests passed
+✅ Hardware functionality verified
+✅ Security features operational
+✅ System integrity confirmed
 ```
 
-This ensures all v2.2.5 features continue working correctly after modifications.
+### Common Issues
+- **GPIO Permission**: Ensure user is in gpio group
+- **Hardware Not Found**: Check wiring and connections
+- **Service Failures**: Verify configuration and dependencies
+
+## 📈 Performance Benchmarks
+
+### Expected Performance
+- **Health Check Cycle**: < 30 seconds
+- **Hardware Response**: < 5 seconds
+- **Network Tests**: < 10 seconds
+- **Integrity Checks**: < 60 seconds
+
+### Monitoring During Tests
+```bash
+# Monitor system resources
+htop
+iostat -x 1
+
+# Monitor service logs
+sudo journalctl -u health-monitor.service -f
+```
+
+---
+
+*For user-facing testing and security demonstrations, see the main [README.md](../README.md).*
