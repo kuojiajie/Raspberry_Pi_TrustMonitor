@@ -92,9 +92,16 @@ bash tools/user/sign_manifest.sh sign         # Create digital signature
 bash tools/dev/test_sigterm.sh            # Test SIGTERM graceful shutdown
 bash tools/dev/test_network_format.sh      # Test network monitor format consistency
 
-# Test LED control
+# Test v2.2.6 HAL Features
+bash tools/dev/test_hal_core.sh            # Test HAL core functionality
+bash tools/dev/test_hardware_functionality.sh  # Test hardware functionality after HAL refactor
+bash tools/dev/test_system_hardware_integration.sh  # Test system hardware integration
+
+# Test LED control (Legacy and HAL)
 python3 hardware/led_controller.py --color green
 python3 hardware/led_controller.py --blink blue
+python3 hardware/hal_led_controller.py --color red
+python3 hardware/hal_led_controller.py --blink green
 ```
 
 ### Test Results Summary
@@ -103,6 +110,7 @@ python3 hardware/led_controller.py --blink blue
 ✅ **Service Integration**: Automatic startup and systemd integration verified  
 ✅ **Security Features**: File integrity verification with digital signatures implemented  
 ✅ **Plugin System**: Dynamic plugin discovery and loading operational
+✅ **HAL System**: Hardware Abstraction Layer with unified interfaces and backward compatibility
 
 ### Service Management
 ```bash
@@ -205,9 +213,10 @@ For detailed technical documentation, see the `docs/` directory:
 
 ## 📋 Version Information
 
-**Current Version**: v2.2.5 - Graceful SIGTERM Handling
+**Current Version**: v2.2.6 - HAL (Hardware Abstraction Layer) Refactoring
 
 ### Recent Releases
+- **v2.2.6**: HAL (Hardware Abstraction Layer) Refactoring with unified hardware interfaces and backward compatibility
 - **v2.2.5**: Enhanced graceful shutdown with comprehensive SIGTERM/SIGINT handling, child process management, and hardware resource cleanup
 - **v2.2.4**: Unified backup management with automatic cleanup and retention policies
 - **v2.2.3**: Separated integrity check frequency from monitoring cycle for improved performance
@@ -216,6 +225,17 @@ For detailed technical documentation, see the `docs/` directory:
 - **v2.2.0**: ROT Attack/Defense Demo with full security validation
 - **v2.1.0**: RSA-sha256 Digital Signature System
 - **v2.0.0**: ROT Security Core with Secure Boot sequence
+
+### v2.2.6 Changes
+- **Hardware Abstraction Layer (HAL)**: Unified hardware interfaces for sensors and indicators with standardized APIs
+- **HAL Core System**: Abstract base classes for IHALDevice, IHALSensor, IHALIndicator with lifecycle management
+- **HAL Manager**: Centralized device registration, initialization, and cleanup with configuration management
+- **HAL Components**: DHT11 sensor and RGB LED implementations with retry logic and simulation mode
+- **HAL Interface**: Main integration layer providing backward compatibility with existing hardware modules
+- **HAL Refactored Modules**: Updated sensor_monitor.py and led_controller.py to use HAL interfaces
+- **Backward Compatibility**: Legacy hardware modules remain fully functional alongside HAL system
+- **Comprehensive Testing**: HAL core tests, hardware functionality tests, and system integration tests
+- **Test Suite**: Enhanced test scripts covering HAL functionality and system hardware integration
 
 ### v2.2.5 Changes
 - **Graceful Shutdown**: Enhanced cleanup function with proper signal handling for SIGTERM and SIGINT

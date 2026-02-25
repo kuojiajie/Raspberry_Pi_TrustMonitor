@@ -92,3 +92,10 @@ network_format_test.log
 
 # Phase 3: Return code constants (implementation files tracked, test outputs excluded)
 return_codes_test.log
+
+# Phase 3: v2.2.6 - HAL Refactoring (test outputs excluded)
+hal_core_test_*.log
+hal_test_*.log
+hardware_functionality_*.log
+system_hardware_integration_*.log
+system_integration_*.log

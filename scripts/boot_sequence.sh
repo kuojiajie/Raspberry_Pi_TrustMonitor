@@ -39,8 +39,12 @@ set_led_color() {
     local color="$1"
     boot_sequence_log_info "Setting LED color: $color"
     
-    # Use hardware LED controller in background with timeout
-    timeout 2 python3 "$BASE_DIR/hardware/led_controller.py" --color "$color" >/dev/null 2>&1 &
+    # Try HAL LED controller first (v2.2.6+), fallback to legacy
+    if [[ -f "$BASE_DIR/hardware/hal_led_controller.py" ]]; then
+        timeout 2 python3 "$BASE_DIR/hardware/hal_led_controller.py" --color "$color" >/dev/null 2>&1 &
+    else
+        timeout 2 python3 "$BASE_DIR/hardware/led_controller.py" --color "$color" >/dev/null 2>&1 &
+    fi
     local led_pid=$!
     
     # Register hardware process if function exists (called from health_monitor.sh)

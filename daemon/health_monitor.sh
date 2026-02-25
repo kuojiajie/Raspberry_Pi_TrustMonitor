@@ -297,9 +297,14 @@ cleanup_hardware_resources() {
         done
     fi
     
-    # Turn off LED (final state)
-    if [[ -f "$SENSOR_SCRIPT" ]]; then
-        log_info "Turning off LED as part of cleanup..."
+    # Turn off LED using HAL (v2.2.6+) or legacy method
+    if [[ -f "$BASE_DIR/hardware/hal_led_controller.py" ]]; then
+        log_info "Turning off LED using HAL..."
+        timeout 3 python3 "$BASE_DIR/hardware/hal_led_controller.py" --off >/dev/null 2>&1 &
+        local led_cleanup_pid=$!
+        wait "$led_cleanup_pid" 2>/dev/null || true
+    elif [[ -f "$SENSOR_SCRIPT" ]]; then
+        log_info "Turning off LED using legacy method..."
         timeout 3 python3 "$BASE_DIR/hardware/led_controller.py" --off >/dev/null 2>&1 &
         local led_cleanup_pid=$!
         wait "$led_cleanup_pid" 2>/dev/null || true
@@ -462,36 +467,69 @@ while true; do
     esac
   fi
 
-  # --- Sensor Monitoring ---
+  # --- Sensor Monitoring (HAL-based) ---
   if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
     sensor_rc=$RC_OK
-    # Execute sensor monitoring (test mode) in background
-    python3 "$SENSOR_SCRIPT" --test >/dev/null 2>&1 &
-    local sensor_pid=$!
-    register_hardware_process "$sensor_pid"
     
-    # Wait for sensor reading with timeout
-    local sensor_wait_count=0
-    while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt 10 ]]; do
-        sleep 1
-        ((sensor_wait_count++))
-    done
-    
-    # Check result and get output
-    if wait "$sensor_pid" 2>/dev/null; then
-      # Parse sensor reading results
-      sensor_output=$(python3 "$SENSOR_SCRIPT" --test 2>&1)
-      if echo "$sensor_output" | grep -q "Sensor read successful"; then
-        temp=$(echo "$sensor_output" | grep -E "Temperature: ([0-9.]+)°C" | sed -r 's/.*Temperature: ([0-9.]+)°C.*/\1/')
-        humidity=$(echo "$sensor_output" | grep -E "Humidity: ([0-9.]+)%" | sed -r 's/.*Humidity: ([0-9.]+)%.*/\1/')
-        status=$(echo "$sensor_output" | grep -E "Status: ([a-z]+)" | sed -r 's/.*Status: ([a-z]+).*/\1/')
-        log_info "Sensor OK (temp=${temp}°C humidity=${humidity}% status=${status})"
-      else
-        log_warn "Sensor WARN (Read failed)"
-      fi
+    # Try HAL-based sensor monitoring first (v2.2.6+)
+    if [[ -f "$BASE_DIR/hardware/hal_sensor_monitor.py" ]]; then
+        # Execute HAL sensor monitoring in background
+        python3 "$BASE_DIR/hardware/hal_sensor_monitor.py" --test >/dev/null 2>&1 &
+        local sensor_pid=$!
+        register_hardware_process "$sensor_pid"
+        
+        # Wait for sensor reading with timeout
+        local sensor_wait_count=0
+        while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt 10 ]]; do
+            sleep 1
+            ((sensor_wait_count++))
+        done
+        
+        # Check result and get output
+        if wait "$sensor_pid" 2>/dev/null; then
+            # Parse HAL sensor reading results
+            sensor_output=$(python3 "$BASE_DIR/hardware/hal_sensor_monitor.py" --test 2>&1)
+            if echo "$sensor_output" | grep -q "Sensor read successful"; then
+                temp=$(echo "$sensor_output" | grep -E "Temperature: ([0-9.]+)°C" | sed -r 's/.*Temperature: ([0-9.]+)°C.*/\1/')
+                humidity=$(echo "$sensor_output" | grep -E "Humidity: ([0-9.]+)%" | sed -r 's/.*Humidity: ([0-9.]+)%.*/\1/')
+                status=$(echo "$sensor_output" | grep -E "Status: ([a-z]+)" | sed -r 's/.*Status: ([a-z]+).*/\1/')
+                log_info "HAL Sensor OK (temp=${temp}°C humidity=${humidity}% status=${status})"
+            else
+                log_warn "HAL Sensor WARN (Read failed)"
+            fi
+        else
+            sensor_rc=$?
+            log_error_with_rc "HAL Sensor ERROR (Execution failed)" $RC_SENSOR_ERROR
+        fi
     else
-      sensor_rc=$?
-      log_error_with_rc "Sensor ERROR (Execution failed)" $RC_SENSOR_ERROR
+        # Fallback to legacy sensor monitoring
+        python3 "$SENSOR_SCRIPT" --test >/dev/null 2>&1 &
+        local sensor_pid=$!
+        register_hardware_process "$sensor_pid"
+        
+        # Wait for sensor reading with timeout
+        local sensor_wait_count=0
+        while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt 10 ]]; do
+            sleep 1
+            ((sensor_wait_count++))
+        done
+        
+        # Check result and get output
+        if wait "$sensor_pid" 2>/dev/null; then
+            # Parse sensor reading results
+            sensor_output=$(python3 "$SENSOR_SCRIPT" --test 2>&1)
+            if echo "$sensor_output" | grep -q "Sensor read successful"; then
+                temp=$(echo "$sensor_output" | grep -E "Temperature: ([0-9.]+)°C" | sed -r 's/.*Temperature: ([0-9.]+)°C.*/\1/')
+                humidity=$(echo "$sensor_output" | grep -E "Humidity: ([0-9.]+)%" | sed -r 's/.*Humidity: ([0-9.]+)%.*/\1/')
+                status=$(echo "$sensor_output" | grep -E "Status: ([a-z]+)" | sed -r 's/.*Status: ([a-z]+).*/\1/')
+                log_info "Legacy Sensor OK (temp=${temp}°C humidity=${humidity}% status=${status})"
+            else
+                log_warn "Legacy Sensor WARN (Read failed)"
+            fi
+        else
+            sensor_rc=$?
+            log_error_with_rc "Legacy Sensor ERROR (Execution failed)" $RC_SENSOR_ERROR
+        fi
     fi
   else
     log_warn "Sensor UNAVAILABLE (Script not found)"
