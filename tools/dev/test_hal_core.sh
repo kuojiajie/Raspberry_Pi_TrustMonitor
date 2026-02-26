@@ -61,6 +61,14 @@ mkdir -p "$BASE_DIR/logs"
 echo "TrustMonitor HAL Core Test Log - $(date '+%Y-%m-%d %H:%M:%S')" > "$TEST_LOG"
 echo "========================================" >> "$TEST_LOG"
 
+# GPIO cleanup before tests
+echo "Performing GPIO cleanup before tests..."
+if [[ -f "$BASE_DIR/tools/dev/cleanup_gpio.sh" ]]; then
+    "$BASE_DIR/tools/dev/cleanup_gpio.sh" >> "$TEST_LOG" 2>&1
+else
+    echo "GPIO cleanup script not found, skipping..."
+fi
+
 # Test 1: Python Environment
 run_test "Python Environment" \
     "cd '$BASE_DIR' && python3 --version"

@@ -296,9 +296,17 @@ cleanup_hardware_resources() {
         done
     fi
     
-    # Turn off LED using HAL (v2.2.6+) or legacy method
+    # ====================================================================
+    # LED Cleanup - HAL vs Legacy System Selection
+    # ====================================================================
+    # Priority: HAL (v2.2.6+) → Legacy → No cleanup
+    # 
+    # HAL System: Modern hardware abstraction layer with unified interfaces
+    # Legacy System: Original hardware controllers (marked DEPRECATED)
+    # 
+    # This ensures backward compatibility while encouraging HAL usage
     if [[ -f "$HARDWARE_DIR/hal_led_controller.py" ]]; then
-        log_info "Turning off LED using HAL..."
+        log_info "Turning off LED using HAL (Hardware Abstraction Layer)..."
         timeout 3 python3 "$HARDWARE_DIR/hal_led_controller.py" --off >/dev/null 2>&1 &
         local led_cleanup_pid=$!
         wait "$led_cleanup_pid" 2>/dev/null || true
@@ -307,6 +315,8 @@ cleanup_hardware_resources() {
         timeout 3 python3 "$HARDWARE_DIR/led_controller.py" --off >/dev/null 2>&1 &
         local led_cleanup_pid=$!
         wait "$led_cleanup_pid" 2>/dev/null || true
+    else
+        log_warn "No LED controller available for cleanup"
     fi
     
     # Clean up GPIO (if accessible)
@@ -470,8 +480,22 @@ while true; do
   if [[ "$SENSOR_AVAILABLE" == "true" ]]; then
     sensor_rc=$RC_OK
     
-    # Try HAL-based sensor monitoring first (v2.2.6+)
+    # ====================================================================
+    # Sensor Monitoring - HAL vs Legacy System Selection
+    # ====================================================================
+    # Priority: HAL (v2.2.6+) → Legacy → Skip sensor monitoring
+    #
+    # HAL System: Modern hardware abstraction with better error handling
+    # Legacy System: Original sensor implementation (marked DEPRECATED)
+    #
+    # HAL Advantages:
+    # - Unified device management
+    # - Better error recovery
+    # - Consistent logging
+    # - Self-test capabilities
     if [[ -f "$HARDWARE_DIR/hal_sensor_monitor.py" ]]; then
+        log_info "Using HAL sensor monitoring (Hardware Abstraction Layer)..."
+        
         # Execute HAL sensor monitoring in background
         python3 "$HARDWARE_DIR/hal_sensor_monitor.py" --test >/dev/null 2>&1 &
         sensor_pid=$!
@@ -501,7 +525,19 @@ while true; do
             log_error_with_rc "HAL Sensor ERROR (Execution failed)" $RC_SENSOR_ERROR
         fi
     else
-        # Fallback to legacy sensor monitoring
+        # ====================================================================
+        # Legacy Sensor Monitoring (Fallback)
+        # ====================================================================
+        # Used only when HAL system is not available
+        # Maintained for backward compatibility
+        # 
+        # Legacy Limitations:
+        # - No unified device management
+        # - Basic error handling
+        # - No self-test capabilities
+        # - Inconsistent logging format
+        log_warn "HAL sensor monitor not available, using legacy method..."
+        
         python3 "$SENSOR_SCRIPT" --test >/dev/null 2>&1 &
         sensor_pid=$!
         register_hardware_process "$sensor_pid"

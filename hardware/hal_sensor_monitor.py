@@ -89,20 +89,35 @@ class HALSensorMonitor:
         self.logger = logging.getLogger('TrustMonitor.HAL.SensorMonitor')
         
     def initialize(self):
-        """Initialize HAL and hardware components"""
+        """
+        Initialize HAL and hardware components
+        
+        This method performs the complete initialization sequence:
+        1. Initialize HAL system with device configuration
+        2. Run device self-tests to verify hardware functionality
+        3. Report initialization status and any issues
+        
+        Raises:
+            RuntimeError: If HAL initialization fails
+            Exception: For other initialization errors
+        """
         try:
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Initializing HAL sensor monitor...")
             
-            # Initialize HAL with configuration
+            # Step 1: Initialize HAL with device configuration
+            # This registers all devices (DHT11 sensor, RGB LED) and sets up GPIO/PWM
             if not self.hal.initialize(self.config.hal_config):
                 raise RuntimeError("Failed to initialize HAL")
-                
-            # Run self-tests
+            
+            # Step 2: Run device self-tests
+            # This verifies that each device can communicate and respond correctly
             test_results = self.hal.run_self_tests()
             failed_tests = [device for device, result in test_results.items() if not result]
             
             if failed_tests:
                 self.logger.warning(f"Some devices failed self-test: {failed_tests}")
+                # Note: We continue initialization even with some failures
+                # This allows partial functionality (e.g., LED works even if sensor fails)
             else:
                 print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] All devices passed self-test")
                 
@@ -111,7 +126,6 @@ class HALSensorMonitor:
         except Exception as e:
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: HAL sensor monitor initialization failed - {e}")
             raise
-    
     def determine_status(self, temperature: float, humidity: float) -> str:
         """Determine LED status based on temperature and humidity"""
         # Check error thresholds

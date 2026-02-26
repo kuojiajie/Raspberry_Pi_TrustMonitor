@@ -79,7 +79,7 @@ run_test "Hardware Package Import" \
 
 # Test 3: HAL Initialization
 run_test "HAL System Initialization" \
-    "cd '$BASE_DIR' && python3 -c '
+    "cd '$BASE_DIR' && timeout 10 python3 -c '
 from hardware.hal_interface import get_hal
 hal = get_hal()
 config = {
@@ -110,7 +110,7 @@ print(f\"Sensor Reader: {type(sensor).__name__}\")
 
 # Test 5: Health Monitor Dependencies
 run_test "Health Monitor Dependencies" \
-    "cd '$BASE_DIR' && bash daemon/health_monitor.sh --help 2>/dev/null || echo 'Health monitor script exists'"
+    "cd '$BASE_DIR' && test -f daemon/health_monitor.sh && echo 'Health monitor script exists'"
 
 # Test 6: Plugin System Loading
 run_test "Plugin System Loading" \
@@ -209,7 +209,7 @@ run_test "Documentation Structure" \
 
 # Test 20: Git Status Check
 run_test "Git Status Check" \
-    "cd '$BASE_DIR' && git status --porcelain && echo \"Git repository status available\""
+    "cd '$BASE_DIR' && timeout 5 git status --porcelain && echo \"Git repository status available\""
 
 # Results Summary
 echo

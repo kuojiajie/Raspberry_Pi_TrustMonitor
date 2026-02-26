@@ -232,7 +232,71 @@ sudo journalctl -u health-monitor.service -f
 sudo journalctl -u health-monitor.service --vacuum-time=7d
 ```
 
-## 🚨 Troubleshooting
+## 🛠️ Development & Testing
+
+### Developer Tools (v2.2.7+)
+TrustMonitor includes comprehensive development tools for testing and validation:
+
+#### Quick Testing
+```bash
+# Run all core tests (recommended for development)
+./tools/dev/quick_test.sh
+
+# Run comprehensive test suite
+./tools/dev/run_all_tests.sh
+
+# Run specific test categories
+./tools/dev/run_all_tests.sh --quick    # Core tests only
+./tools/dev/run_all_tests.sh --verbose  # Detailed output
+```
+
+#### Environment Validation
+```bash
+# Check Python environment and HAL dependencies
+./tools/dev/check_hal_env.sh
+
+# Clean up GPIO/PWM states (useful after test failures)
+./tools/dev/cleanup_gpio.sh
+
+# Force cleanup if processes are stuck
+./tools/dev/cleanup_gpio.sh --force
+```
+
+#### Individual Test Suites
+```bash
+# HAL system tests
+./tools/dev/test_hal_core.sh
+./tools/dev/test_hal_refactor.sh
+
+# System integration tests
+./tools/dev/test_system_integration.sh
+./tools/dev/test_system_hardware_integration.sh
+
+# Hardware functionality tests
+./tools/dev/test_hardware_functionality.sh
+```
+
+### Known Issues & Solutions
+
+#### PWM/GPIO Conflicts
+If tests fail intermittently, it's likely due to PWM/GPIO conflicts between HAL and Legacy systems:
+
+```bash
+# Clean up before running tests
+./tools/dev/cleanup_gpio.sh
+
+# Tests now include automatic cleanup
+./tools/dev/quick_test.sh
+```
+
+#### HAL vs Legacy Systems
+TrustMonitor v2.2.6+ includes both HAL (Hardware Abstraction Layer) and Legacy systems:
+
+- **HAL System**: Modern, extensible hardware interface
+- **Legacy System**: Original hardware controllers (marked DEPRECATED)
+- **Automatic Fallback**: System uses HAL when available, falls back to Legacy
+
+## 🔧 Troubleshooting
 
 ### Common Issues
 
@@ -304,7 +368,100 @@ TrustMonitor is a proof-of-concept system designed for educational and demonstra
 
 ## 📄 License
 
-This project is provided as-is for educational and demonstration purposes. See individual files for specific licensing information.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📋 Version History
+
+### v2.2.7 (Current) - Phase 2 Completion: System Stabilization
+- **🚀 Unified Path Management**: Centralized path system with `lib/path_manager.sh`
+- **📁 Data Directory Structure**: Unified runtime data storage in `data/` directory
+- **🛠️ Developer Tools**: Comprehensive testing suite with GPIO cleanup utilities
+- **📚 Documentation Updates**: Enhanced developer experience documentation
+- **🔧 Legacy Code Marking**: Clear DEPRECATED notices for old hardware modules
+- **✅ System Stability**: All user-facing functions fully operational
+- **🔒 ROT Security**: Complete integrity verification and digital signature system
+- **🎯 Phase 2 Complete**: Ready for Phase 3 development
+
+### v2.2.6 - HAL (Hardware Abstraction Layer)
+- **🏗️ HAL System**: Complete hardware abstraction layer with unified interfaces
+- **🔌 Device Management**: Centralized device registration and lifecycle management
+- **🔄 Backward Compatibility**: Seamless integration with existing hardware modules
+- **🧪 Comprehensive Testing**: 15/15 HAL core tests, 23/23 hardware functionality tests
+
+### v2.2.5 - Graceful Shutdown & Tools Reorganization
+- **🛑 SIGTERM Handling**: Proper service shutdown with hardware cleanup
+- **📂 Tools Restructure**: Organized tools into `user/`, `dev/`, and `security/` directories
+- **💾 Backup Management**: Unified backup system with automatic cleanup
+
+### v2.2.4 - Unified Backup Management
+- **💾 Backup System**: Centralized backup with automatic rotation
+- **🧹 Cleanup Automation**: Automatic old backup removal with retention policies
+- **📊 Backup Statistics**: Backup monitoring and reporting
+
+### v2.2.3 - Performance Optimization
+- **⚡ Integrity Check Efficiency**: Optimized hash generation and verification
+- **🚀 Faster Startup**: Reduced initialization time
+- **📈 Performance Metrics**: Added performance monitoring
+
+### v2.2.2 - Return Code Standardization
+- **🔢 Unified Return Codes**: Standardized error handling across all scripts
+- **📋 Code Constants**: Centralized return code definitions
+- **🐛 Better Debugging**: Improved error reporting and troubleshooting
+
+### v2.2.1 - Documentation Refactoring
+- **📚 User-Focused Docs**: Restructured documentation for better user experience
+- **🔖 Clear Navigation**: Improved document organization and cross-references
+- **📖 Comprehensive Guides**: Enhanced setup and troubleshooting guides
+
+### v2.2.0 - ROT Attack/Defense System
+- **🛡️ Security Demo**: Complete attack/defense demonstration system
+- **🎯 5 Attack Scenarios**: Comprehensive security testing scenarios
+- **🔍 Forensic Analysis**: Attack detection and evidence collection
+
+### v2.1.0 - RSA Digital Signature System
+- **🔐 Digital Signatures**: RSA-based file integrity verification
+- **🔑 Key Management**: Automated RSA key pair generation and management
+- **📋 Signature Verification**: Complete signature validation system
+
+### v2.0.0 - ROT Security Core
+- **🚀 Secure Boot**: Root of Trust implementation with secure boot sequence
+- **🔒 Integrity Protection**: SHA256-based file integrity verification
+- **🛡️ Security Framework**: Comprehensive security architecture
+
+### v1.1.5 - Plugin Auto-Load System
+- **🔌 Plugin System**: Dynamic plugin loading and management
+- **⚙️ Auto-Discovery**: Automatic plugin detection and initialization
+- **🔧 Plugin Interface**: Standardized plugin development framework
+
+### v1.1.4 - Dependency Cleanup
+- **🧹 Code Cleanup**: Removed bc dependency and improved portability
+- **📝 Documentation**: Updated README and improved formatting
+- **🔧 Configuration**: Enhanced configuration management
+
+### v1.1.3 - Health Aggregation
+- **📊 Overall Health**: System-wide health status aggregation
+- **🎯 Priority Alerts**: Critical system issue prioritization
+- **📈 Health Metrics**: Comprehensive health monitoring dashboard
+
+### v1.1.2 - Dependency Management
+- **🔍 Dependency Checking**: Automatic dependency verification
+- **📦 Package Management**: Enhanced package installation scripts
+- **⚙️ Environment Setup**: Improved environment configuration
+
+### v1.1.1 - Environment Fallback
+- **🔄 Fallback System**: Enhanced environment variable fallback mechanisms
+- **🛡️ Error Handling**: Improved error handling and recovery
+- **🔧 Configuration Reliability**: More robust configuration management
+
+### v1.1.0 - Phase 1 Complete
+- **🎉 Production Ready**: Complete Phase 1 implementation
+- **🚀 Stable Release**: Production-ready monitoring system
+- **📚 Full Documentation**: Complete user and developer documentation
+
+### v1.0.0 - Initial Release
+- **🎯 Proof of Concept**: Initial BMC/ROT demonstration
+- **🖥️ Basic Monitoring**: Core system health monitoring
+- **🌡️ Hardware Integration**: DHT11 sensor and RGB LED support
 
 ---
 

@@ -3,6 +3,10 @@
 TrustMonitor Hardware LED Control Module
 ========================================
 
+DEPRECATED: Use hardware/hal_led_controller.py instead
+This legacy module is maintained for backward compatibility only.
+New development should use the HAL (Hardware Abstraction Layer) system.
+
 Features:
 - RGB LED status indicator control
 - Support for red, green, blue pure color output

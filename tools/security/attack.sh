@@ -49,12 +49,17 @@ show_usage() {
     echo "  --list        List all attack scenarios"
     echo "  --status      Show current system status"
     echo "  --verify      Verify system integrity before attack"
+    echo "  --force       Skip integrity check (for demo purposes)"
     echo "  --help        Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0 malicious_code    # Inject malicious code"
     echo "  $0 multiple         # Launch combined attack"
+    echo "  $0 --force config_tamper  # Force attack without integrity check"
     echo "  $0 --verify         # Check system integrity"
+    echo ""
+    echo "Note: Use --force only for demonstration purposes"
+    echo "      Normal mode requires system integrity verification"
 }
 
 # Load backup manager
@@ -185,8 +190,8 @@ attack_multiple() {
 verify_system_integrity() {
     log_info "Verifying system integrity before attack..."
     
-    # Run integrity check
-    if bash "$PROJECT_ROOT/scripts/integrity_check.sh" >/dev/null 2>&1; then
+    cd "$PROJECT_ROOT"
+    if bash scripts/integrity_check.sh >/dev/null 2>&1; then
         log_info "✅ System integrity verified - Ready for attack demonstration"
         return 0
     else
@@ -199,6 +204,8 @@ verify_system_integrity() {
 show_system_status() {
     log_info "=== CURRENT SYSTEM STATUS ==="
     
+    cd "$PROJECT_ROOT"
+    
     # Check service status
     if systemctl is-active --quiet health-monitor.service 2>/dev/null; then
         log_info "✅ Health monitor service: ACTIVE"
@@ -207,14 +214,16 @@ show_system_status() {
     fi
     
     # Check integrity status
-    if bash "$PROJECT_ROOT/scripts/integrity_check.sh" >/dev/null 2>&1; then
+    if bash scripts/integrity_check.sh >/dev/null 2>&1; then
         log_info "✅ System integrity: VERIFIED"
     else
         log_error "❌ System integrity: COMPROMISED"
     fi
     
     # Check signature status
-    if bash "$PROJECT_ROOT/scripts/verify_signature.sh" verify >/dev/null 2>&1; then
+    cd "$PROJECT_ROOT"
+    export MANIFEST_FILE="data/manifest.sha256"
+    if bash scripts/verify_signature.sh verify >/dev/null 2>&1; then
         log_info "✅ Digital signature: VALID"
     else
         log_error "❌ Digital signature: INVALID"
@@ -237,56 +246,70 @@ list_attack_scenarios() {
 
 # Main execution
 main() {
-    local attack_type="${1:-help}"
+    local attack_type="${1:-}"
+    local force_mode=false
     
-    case "$attack_type" in
-        "malicious_code")
-            verify_system_integrity || exit 1
-            create_backup
-            attack_malicious_code
-            show_system_status
-            ;;
-        "config_tamper")
-            verify_system_integrity || exit 1
-            create_backup
-            attack_config_tamper
-            show_system_status
-            ;;
-        "core_module")
-            verify_system_integrity || exit 1
-            create_backup
-            attack_core_module
-            show_system_status
-            ;;
-        "signature_forgery")
-            verify_system_integrity || exit 1
-            create_backup
-            attack_signature_forgery
-            show_system_status
-            ;;
-        "multiple")
-            verify_system_integrity || exit 1
-            create_backup
-            attack_multiple
-            show_system_status
-            ;;
-        "--list")
+    # Check for force mode
+    if [[ "$attack_type" == "--force" ]]; then
+        force_mode=true
+        attack_type="${2:-}"
+        log_warn "⚠️  Skipping integrity check - Force mode enabled"
+    fi
+    
+    # Handle special commands
+    case "${attack_type}" in
+        --list)
             list_attack_scenarios
+            exit 0
             ;;
-        "--status")
+        --status)
             show_system_status
+            exit 0
             ;;
-        "--verify")
+        --verify)
             verify_system_integrity
+            exit $?
             ;;
-        "--help"|"help"|"-h")
+        --help)
             show_usage
             exit 0
             ;;
-        *)
-            log_error "Unknown attack type: $attack_type"
-            show_usage
-            exit 1
+    esac
+    
+    # Validate attack type
+    if [[ -z "${ATTACK_SCENARIOS[$attack_type]:-}" ]]; then
+        log_error "Unknown attack type: $attack_type"
+        show_usage
+        exit 1
+    fi
+    
+    # Verify system integrity (unless force mode)
+    if [[ "$force_mode" != "true" ]]; then
+        verify_system_integrity || exit 1
+    fi
+    
+    # Create backup
+    create_backup
+    
+    # Execute attack
+    log_info "🎯 Starting attack: $attack_type"
+    log_info "📍 Target: TrustMonitor security system"
+    
+    case "$attack_type" in
+        "config_tamper")
+            attack_config_tamper
+            ;;
+        "malicious_code")
+            attack_malicious_code
+            ;;
+        "core_module")
+            attack_core_module
+            ;;
+        "signature_forgery")
+            attack_signature_forgery
+            ;;
+        "multiple")
+            attack_multiple
             ;;
     esac
     
@@ -299,6 +322,9 @@ main() {
     log_info "   sudo journalctl -u health-monitor.service -f"
     log_info "3. Use restore.sh to recover the system"
     log_info "   bash tools/restore.sh"
+    
+    # Show system status
+    show_system_status
 }
 
 # Execute main function with all arguments

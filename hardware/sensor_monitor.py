@@ -3,6 +3,10 @@
 TrustMonitor Hardware Sensor Monitoring Service
 ===============================================
 
+DEPRECATED: Use hardware/hal_sensor_monitor.py instead
+This legacy module is maintained for backward compatibility only.
+New development should use the HAL (Hardware Abstraction Layer) system.
+
 Features:
 - Periodic temperature and humidity monitoring with LED status updates
 - Integration with TrustMonitor health monitoring system

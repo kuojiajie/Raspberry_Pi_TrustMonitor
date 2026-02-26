@@ -15,14 +15,16 @@ network_monitor_description() {
 network_monitor_latency_ms() {
     local latency
     local target="${PING_TARGET:-8.8.8.8}"
-    latency="$(ping -c 3 "$target" 2>/dev/null | tail -1 | awk -F'/' '{print $5}')"
+    # Add timeout to prevent hanging
+    latency="$(timeout 10 ping -c 3 "$target" 2>/dev/null | tail -1 | awk -F'/' '{print $5}')"
     echo "${latency:-0}"
 }
 
 network_monitor_packet_loss_pct() {
     local loss
     local target="${PING_TARGET:-8.8.8.8}"
-    loss="$(ping -c 3 "$target" 2>/dev/null | grep 'packet loss' | awk -F'%' '{print $1}' | awk '{print $NF}')"
+    # Add timeout to prevent hanging
+    loss="$(timeout 10 ping -c 3 "$target" 2>/dev/null | grep 'packet loss' | awk -F'%' '{print $1}' | awk '{print $NF}')"
     echo "${loss:-0}"
 }
 
