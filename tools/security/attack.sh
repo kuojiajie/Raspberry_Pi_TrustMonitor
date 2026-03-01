@@ -7,7 +7,7 @@ set -euo pipefail
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"  # Go up two levels to reach project root
 BACKUP_DIR="$PROJECT_ROOT/backup/attack_demo_$(date +%Y%m%d_%H%M%S)"
 
 # Attack scenarios registry
@@ -154,8 +154,8 @@ attack_core_module() {
 attack_signature_forgery() {
     log_info "=== ATTACK SCENARIO 4: Signature Forgery Attempt ==="
     
-    local manifest_file="$PROJECT_ROOT/manifest.sha256"
-    local fake_signature="$PROJECT_ROOT/manifest.sha256.sig"
+    local manifest_file="$PROJECT_ROOT/data/manifest.sha256"
+    local fake_signature="$PROJECT_ROOT/data/manifest.sha256.sig"
     
     if [[ -f "$manifest_file" ]]; then
         log_info "Attempting to create fake signature..."

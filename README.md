@@ -11,6 +11,7 @@ TrustMonitor transforms a Raspberry Pi into a miniature BMC/ROT system that:
 - **💡 Visual Status Indicators**: LED shows system health with temperature/humidity thresholds
 - **🔒 Security Protection**: SHA256 integrity verification with RSA digital signatures
 - **⚡ Service Management**: Automatic startup and background monitoring
+- **🛡️ Attack Defense**: Security attack simulation and automatic recovery
 
 ## 🚀 Quick Start (5 Minutes)
 
@@ -113,9 +114,9 @@ DHT11 Sensor:
 └── DATA → GPIO 4 (Pin 7)
 
 RGB LED (Common Anode):
-├── Red   → GPIO 17 (Pin 11)
-├── Green → GPIO 27 (Pin 13)
-├── Blue  → GPIO 22 (Pin 15)
+├── Red   → GPIO 27 (Pin 13)
+├── Green → GPIO 22 (Pin 15)
+├── Blue  → GPIO 5 (Pin 29)
 └── Common → 3.3V (Pin 1)
 ```
 
@@ -190,13 +191,15 @@ bash tools/security/attack.sh malicious_code
 ## 📚 Documentation
 
 ### For Users
-- **[Security Demo Guide](docs/security/attack-defense-demo.md)** - Complete security demonstration
+- **[Attack/Defense Demo Guide](docs/attack-defense-demo.md)** - Complete security demonstration
 - **[Backup Management](docs/backup-management.md)** - System backup and recovery
 
 ### For Developers
 - **[Documentation Index](docs/README.md)** - Complete technical documentation
-- **[HAL System](docs/hal-system.md)** - Hardware abstraction layer
-- **[Testing Guide](docs/testing.md)** - Development and validation procedures
+- **[User Guide](docs/user-guide.md)** - Complete user guide and testing
+- **[Security Guide](docs/security-guide.md)** - Security features and protection
+- **[HAL System](docs/hal-system.md)** - Hardware abstraction layer overview
+- **[Backup Management](docs/backup-management.md)** - Backup system and recovery
 
 ## 🛠️ Advanced Configuration
 
@@ -232,69 +235,38 @@ sudo journalctl -u health-monitor.service -f
 sudo journalctl -u health-monitor.service --vacuum-time=7d
 ```
 
-## 🛠️ Development & Testing
+## 🛠️ Quick Tools
 
-### Developer Tools (v2.2.7+)
-TrustMonitor includes comprehensive development tools for testing and validation:
-
-#### Quick Testing
+### System Check
 ```bash
-# Run all core tests (recommended for development)
-./tools/dev/quick_test.sh
+# Quick health check (recommended for users)
+bash tools/dev/quick_test.sh
 
-# Run comprehensive test suite
-./tools/dev/run_all_tests.sh
-
-# Run specific test categories
-./tools/dev/run_all_tests.sh --quick    # Core tests only
-./tools/dev/run_all_tests.sh --verbose  # Detailed output
+# Complete system demonstration
+bash tools/user/demo.sh
 ```
 
-#### Environment Validation
+### Security Testing
 ```bash
-# Check Python environment and HAL dependencies
-./tools/dev/check_hal_env.sh
+# View available attack scenarios
+bash tools/security/attack.sh --list
 
-# Clean up GPIO/PWM states (useful after test failures)
-./tools/dev/cleanup_gpio.sh
+# Run specific attack simulation
+bash tools/security/attack.sh malicious_code
 
-# Force cleanup if processes are stuck
-./tools/dev/cleanup_gpio.sh --force
+# Restore after attack
+bash tools/user/restore.sh --auto
 ```
 
-#### Individual Test Suites
+### System Maintenance
 ```bash
-# HAL system tests
-./tools/dev/test_hal_core.sh
-./tools/dev/test_hal_refactor.sh
+# Update system integrity after changes
+bash tools/user/gen_hash.sh generate
+bash tools/user/sign_manifest.sh sign
 
-# System integration tests
-./tools/dev/test_system_integration.sh
-./tools/dev/test_system_hardware_integration.sh
-
-# Hardware functionality tests
-./tools/dev/test_hardware_functionality.sh
+# Verify system integrity
+bash scripts/integrity_check.sh
 ```
-
-### Known Issues & Solutions
-
-#### PWM/GPIO Conflicts
-If tests fail intermittently, it's likely due to PWM/GPIO conflicts between HAL and Legacy systems:
-
-```bash
-# Clean up before running tests
-./tools/dev/cleanup_gpio.sh
-
-# Tests now include automatic cleanup
-./tools/dev/quick_test.sh
-```
-
-#### HAL vs Legacy Systems
-TrustMonitor v2.2.6+ includes both HAL (Hardware Abstraction Layer) and Legacy systems:
-
-- **HAL System**: Modern, extensible hardware interface
-- **Legacy System**: Original hardware controllers (marked DEPRECATED)
-- **Automatic Fallback**: System uses HAL when available, falls back to Legacy
 
 ## 🔧 Troubleshooting
 
@@ -314,12 +286,25 @@ ls -la daemon/health_monitor.sh
 
 #### Hardware Not Working
 ```bash
-# Test hardware components
-bash tools/dev/test_system_hardware_integration.sh
+# Quick hardware check
+bash tools/dev/quick_test.sh
 
 # Check GPIO permissions
 ls -la /dev/gpiomem
 groups $USER  # Should include gpio group
+
+# Test LED directly
+python3 -c "
+import sys
+sys.path.append('hardware')
+from hal_indicators import RGBLEDIndicator, LEDColor
+led = RGBLEDIndicator('rgb_led')
+config = {'pins': {'red': 27, 'green': 22, 'blue': 5}, 'brightness': 100}
+if led.initialize(config):
+    led.set_color(LEDColor.GREEN)
+    print('LED test successful')
+    led.clear()
+"
 ```
 
 #### Integrity Check Fails
@@ -328,8 +313,8 @@ groups $USER  # Should include gpio group
 bash tools/user/gen_hash.sh generate
 bash tools/user/sign_manifest.sh sign
 
-# Restore from backup if needed
-bash tools/user/restore.sh --auto
+# Or use restore tool
+bash tools/user/restore.sh --regen
 ```
 
 ### Log Analysis
@@ -372,14 +357,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📋 Version History
 
-### v2.2.7 (Current) - Phase 2 Completion: System Stabilization
-- **🚀 Unified Path Management**: Centralized path system with `lib/path_manager.sh`
-- **📁 Data Directory Structure**: Unified runtime data storage in `data/` directory
-- **🛠️ Developer Tools**: Comprehensive testing suite with GPIO cleanup utilities
-- **📚 Documentation Updates**: Enhanced developer experience documentation
-- **🔧 Legacy Code Marking**: Clear DEPRECATED notices for old hardware modules
+### v2.2.7 (Current) - Tools Reorganization & System Stabilization
+- **� Tools Restructure**: Organized tools into `user/`, `dev/`, and `security/` directories
+- **🛠️ Simplified Testing**: Removed complex test suite, kept essential `quick_test.sh`
+- **� Enhanced Documentation**: Complete tools documentation with usage examples
+- **🔧 Path Fixes**: Fixed `attack.sh` paths for security demonstrations
 - **✅ System Stability**: All user-facing functions fully operational
-- **🔒 ROT Security**: Complete integrity verification and digital signature system
+- **�️ ROT Security**: Complete integrity verification and digital signature system
 - **🎯 Phase 2 Complete**: Ready for Phase 3 development
 
 ### v2.2.6 - HAL (Hardware Abstraction Layer)

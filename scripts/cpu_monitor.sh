@@ -62,4 +62,3 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     echo "CPU load: $(cpu_monitor_load1) status code: $rc"
     exit $rc
 fi
-# MALICIOUS CODE INJECTION TEST

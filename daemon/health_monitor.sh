@@ -502,8 +502,10 @@ while true; do
         register_hardware_process "$sensor_pid"
         
         # Wait for sensor reading with timeout
+        # Account for sensor retry mechanism: max_retries (3) + retry_delay (1s) + buffer
+        max_sensor_wait=15  # Increased from 10 to accommodate retries
         sensor_wait_count=0
-        while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt 10 ]]; do
+        while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt $max_sensor_wait ]]; do
             sleep 1
             ((sensor_wait_count++))
         done
@@ -543,8 +545,10 @@ while true; do
         register_hardware_process "$sensor_pid"
         
         # Wait for sensor reading with timeout
+        # Account for sensor retry mechanism: max_retries (3) + retry_delay (1s) + buffer
+        max_sensor_wait=15  # Increased from 10 to accommodate retries
         sensor_wait_count=0
-        while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt 10 ]]; do
+        while kill -0 "$sensor_pid" 2>/dev/null && [[ $sensor_wait_count -lt $max_sensor_wait ]]; do
             sleep 1
             ((sensor_wait_count++))
         done
@@ -579,6 +583,77 @@ while true; do
     aggregate_health_status "$network_rc" "$cpu_rc" "$memory_rc" "$disk_rc" "$temp_rc" "$sensor_rc"
   else
     aggregate_health_status "$network_rc" "$cpu_rc" "$memory_rc" "$disk_rc" "$temp_rc" "$RC_OK"
+  fi
+
+  # --- Phase 3: Watchdog & SEL Integration ---
+  # Periodic Watchdog Check (every 5 minutes by default)
+  local current_time
+  current_time=$(date +%s)
+  local last_watchdog_check=0
+  if [[ -f "$RUNTIME_DIR/.last_watchdog_check" ]]; then
+    last_watchdog_check=$(cat "$RUNTIME_DIR/.last_watchdog_check" 2>/dev/null || echo "0")
+  fi
+  
+  local watchdog_interval="${WATCHDOG_INTERVAL:-300}"  # 5 minutes
+  if [[ $((current_time - last_watchdog_check)) -ge $watchdog_interval ]]; then
+    log_info "Starting periodic watchdog check..."
+    
+    # Load and execute watchdog
+    if [[ -f "$SCRIPTS_DIR/watchdog.sh" ]]; then
+      source "$SCRIPTS_DIR/watchdog.sh"
+      if watchdog_check; then
+        log_info "Watchdog check completed successfully"
+        # Log to SEL
+        if [[ -f "$SCRIPTS_DIR/sel_logger.sh" ]]; then
+          source "$SCRIPTS_DIR/sel_logger.sh"
+          log_watchdog_event "info" "health_monitor" "Periodic watchdog check passed"
+        fi
+      else
+        log_warn "Watchdog check detected issues"
+        # Log to SEL
+        if [[ -f "$SCRIPTS_DIR/sel_logger.sh" ]]; then
+          source "$SCRIPTS_DIR/sel_logger.sh"
+          log_watchdog_event "warning" "health_monitor" "Watchdog check detected issues"
+        fi
+      fi
+      echo "$current_time" > "$RUNTIME_DIR/.last_watchdog_check"
+    else
+      log_warn "Watchdog script not found: $SCRIPTS_DIR/watchdog.sh"
+    fi
+  fi
+
+  # --- SEL Event Logging for Critical Events ---
+  # Log critical system events to SEL
+  if [[ -f "$SCRIPTS_DIR/sel_logger.sh" ]]; then
+    source "$SCRIPTS_DIR/sel_logger.sh"
+    
+    # Initialize SEL if not already done
+    init_sel_system >/dev/null 2>&1
+    
+    # Log critical events based on monitoring results
+    if [[ $network_rc -eq $RC_ERROR ]]; then
+      log_system_event "critical" "network_monitor" "Network connectivity failure detected"
+    fi
+    
+    if [[ $cpu_rc -eq $RC_ERROR ]]; then
+      log_system_event "critical" "cpu_monitor" "CPU load exceeded critical threshold"
+    fi
+    
+    if [[ $memory_rc -eq $RC_ERROR ]]; then
+      log_system_event "critical" "memory_monitor" "Memory availability critically low"
+    fi
+    
+    if [[ $disk_rc -eq $RC_ERROR ]]; then
+      log_system_event "critical" "disk_monitor" "Disk usage exceeded critical threshold"
+    fi
+    
+    if [[ $temp_rc -eq $RC_ERROR ]]; then
+      log_system_event "critical" "cpu_temp_monitor" "CPU temperature exceeded critical threshold"
+    fi
+    
+    if [[ $integrity_rc -eq $RC_INTEGRITY_FAILED ]]; then
+      log_security_event "critical" "integrity_check" "System integrity verification failed"
+    fi
   fi
 
   sleep "$CHECK_INTERVAL"

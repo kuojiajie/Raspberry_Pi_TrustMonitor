@@ -3,106 +3,60 @@
 ## 📚 Available Documentation
 
 ### 🔒 Security Documentation
-- **[Attack/Defense Demo](security/attack-defense-demo.md)** - Complete security demonstration with 5 attack scenarios
+- **[Attack/Defense Demo](attack-defense-demo.md)** - Complete security demonstration with 5 attack scenarios
 
 ### 🔧 System Documentation
-- **[HAL System](hal-system.md)** - Hardware Abstraction Layer architecture and usage
-- **[HAL Architecture](hal-architecture.md)** - Complete HAL system architecture and design patterns
-- **[Backup Management](backup-management.md)** - Unified backup system with automatic cleanup and retention policies
-- **[Testing Guide](testing.md)** - Comprehensive testing suite and validation procedures
+- **[HAL System](hal-system.md)** - Hardware abstraction layer overview
+- **[Backup Management](backup-management.md)** - Backup system and recovery
+- **[User Guide](user-guide.md)** - Complete user guide and testing
+- **[Security Guide](security-guide.md)** - Security features and protection
 
 ### 📋 Reference Documentation
 - **[Return Codes](../lib/return_codes.sh)** - Unified return code constants and error handling (see file header documentation)
 
-### 🛠️ Development Tools (v2.2.7+)
-- **[Developer Tools Guide](#developer-tools-guide)** - Complete development and testing toolkit
+### 🛠️ Tools Documentation
+- **[Tools Guide](../tools/README.md)** - Complete tools documentation and usage examples
 
 ## 🎯 Quick Links
 
 - **Quick Start**: See main [README.md](../README.md) for 5-minute setup
-- **Security Demo**: [Attack/Defense Demo](security/attack-defense-demo.md) for comprehensive security testing
-- **HAL System**: [HAL System](hal-system.md) for hardware abstraction layer documentation
-- **Backup Management**: [Backup Management](backup-management.md) for backup system configuration
-- **Testing Guide**: [Testing Guide](testing.md) for development and validation procedures
-- **Return Codes**: [Return Codes](../lib/return_codes.sh) for error handling reference
+- **Security Demo**: [Attack/Defense Demo](attack-defense-demo.md) for comprehensive security testing
+- **HAL System**: [HAL System](hal-system.md) for hardware abstraction overview
+- **User Guide**: [User Guide](user-guide.md) for complete usage instructions
+- **Security Guide**: [Security Guide](security-guide.md) for security features
+- **Backup Management**: [Backup Management](backup-management.md) for backup system
+- **Tools Guide**: [Tools Guide](../tools/README.md) for tools and utilities documentation
 
-## 🛠️ Developer Tools Guide
+## 🛠️ Quick Tools Reference
 
-### Quick Testing
+### User Tools
 ```bash
-# Run all core tests (recommended for daily development)
-./tools/dev/quick_test.sh
+# Quick system health check
+bash tools/dev/quick_test.sh
 
-# Run comprehensive test suite with detailed output
-./tools/dev/run_all_tests.sh --verbose
+# Complete system demonstration
+bash tools/user/demo.sh
 
-# Run only essential tests (faster)
-./tools/dev/run_all_tests.sh --quick
+# Security testing
+bash tools/security/attack.sh --list
+bash tools/security/attack.sh malicious_code
+
+# System recovery
+bash tools/user/restore.sh --auto
 ```
 
-### Environment Validation
+### System Maintenance
 ```bash
-# Check Python environment and HAL dependencies
-./tools/dev/check_hal_env.sh
+# Update system integrity
+bash tools/user/gen_hash.sh generate
+bash tools/user/sign_manifest.sh sign
 
-# Clean up GPIO/PWM states (useful after test failures)
-./tools/dev/cleanup_gpio.sh
-
-# Force cleanup if processes are stuck
-./tools/dev/cleanup_gpio.sh --force
+# Verify system integrity
+bash scripts/integrity_check.sh
 ```
 
-### Individual Test Suites
-```bash
-# HAL system tests
-./tools/dev/test_hal_core.sh          # HAL core functionality
-./tools/dev/test_hal_refactor.sh      # HAL refactoring validation
+## 📚 Additional Resources
 
-# System integration tests
-./tools/dev/test_system_integration.sh
-./tools/dev/test_system_hardware_integration.sh
-
-# Hardware functionality tests
-./tools/dev/test_hardware_functionality.sh
-```
-
-### Known Issues & Solutions
-
-#### PWM/GPIO Conflicts
-If tests fail intermittently, use GPIO cleanup:
-```bash
-./tools/dev/cleanup_gpio.sh
-./tools/dev/quick_test.sh
-```
-
-#### HAL vs Legacy Systems
-- **HAL System**: Modern hardware interface (preferred)
-- **Legacy System**: Original controllers (marked DEPRECATED)
-- **Automatic Fallback**: System uses HAL when available
-
-## 📖 Getting Started
-
-1. **New Users**: Start with the main [README.md](../README.md) for basic setup
-2. **HAL Development**: See [HAL System](hal-system.md) for hardware abstraction layer usage
-3. **Security Testing**: Follow the [Attack/Defense Demo](security/attack-defense-demo.md) for security validation
-4. **Backup Management**: See [Backup Management](backup-management.md) for backup system configuration
-5. **Development**: Use the [Developer Tools Guide](#developer-tools-guide) for testing and validation
-
-## 📋 Documentation Structure
-
-```
-docs/
-├── README.md                    # This file - documentation index
-├── hal-system.md               # HAL system documentation
-├── hal-architecture.md         # Complete HAL architecture and design patterns
-├── backup-management.md         # Backup system guide
-├── testing.md                   # Testing procedures and validation
-└── security/
-    └── attack-defense-demo.md   # Security demonstration guide
-```
-5. **Development**: See [Return Codes](../lib/return_codes.sh) for understanding error handling
-6. **Testing**: Use the [Testing Guide](testing.md) for development and validation procedures
-
----
-
-*Documentation focused on user needs and practical usage.*
+For more detailed information, see the main project documentation:
+- **Main Project**: [../README.md](../README.md)
+- **Tools Documentation**: [../tools/README.md](../tools/README.md)

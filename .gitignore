@@ -24,6 +24,7 @@ systemd/health-monitor.service
 # Runtime state files (generated during operation)
 .last_integrity_check
 .last_shutdown
+data/runtime/
 *.pid
 
 # Temporary files
@@ -51,15 +52,17 @@ demo_*.log
 attack_*.log
 restore_*.log
 test_*.log
-sigterm_test.log
-network_format_test.log
-return_codes_test.log
-hal_core_test_*.log
-hal_test_*.log
-hardware_functionality_*.log
-system_hardware_integration_*.log
-system_integration_*.log
 health_monitor_*.log
+
+# Removed obsolete test logs (tools/dev/ scripts have been simplified)
+# sigterm_test.log
+# network_format_test.log
+# return_codes_test.log
+# hal_core_test_*.log
+# hal_test_*.log
+# hardware_functionality_*.log
+# system_hardware_integration_*.log
+# system_integration_*.log
 
 # ==============================================================================
 # 🚫 SECURITY & BACKUP FILES
@@ -68,15 +71,25 @@ health_monitor_*.log
 manifest.sha256
 manifest.sha256.sig
 keys/
+data/keys/backup_*/
+data/manifest.sha256
+data/manifest.sha256.sig
 
 # Backup directories (generated, should not be committed)
 backup/
 !backup/.gitkeep
+tools/backup/
+!tools/backup/.gitkeep
 
 # Attack demo artifacts (generated during security testing)
 /tmp/attack_proof.txt
 /tmp/backdoor_*
 /tmp/pwned_*
+
+# Attack evidence files (generated during security testing)
+attack_proof.txt
+backdoor_*
+pwned_*
 
 # ==============================================================================
 # 🚫 DEVELOPMENT & BUILD ARTIFACTS
@@ -147,11 +160,17 @@ hardware/__pycache__/
 docs/_build/
 site/
 
+# Tools backup directories (generated during operations)
+tools/backup/
+!tools/backup/.gitkeep
+
 # ==============================================================================
 # 📋 NOTES
 # ==============================================================================
 # - backup/ directory is excluded but .gitkeep is preserved to maintain directory structure
+# - tools/backup/ directory is excluded but .gitkeep is preserved to maintain directory structure  
 # - Security files (manifest.sha256, keys/) are generated and should not be committed
 # - Runtime state files are generated during operation and should not be committed
 # - All log files are excluded to keep repository clean
 # - IDE and OS files are excluded for cross-platform compatibility
+# - Removed obsolete test log patterns as tools/dev/ scripts have been simplified
