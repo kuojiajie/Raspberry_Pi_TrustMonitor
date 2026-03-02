@@ -57,11 +57,9 @@ update_watchdog_status() {
     local timestamp
     timestamp="$(date -Iseconds)"
     
-    {
-        echo "status=$status"
-        echo "last_check=$timestamp"
-        echo "last_action=$details"
-    } > "$WATCHDOG_STATUS_FILE"
+    # Create proper JSON format
+    printf '{"status": "%s", "last_check": "%s", "last_action": "%s"}\n' \
+        "$status" "$timestamp" "$details" > "$WATCHDOG_STATUS_FILE"
 }
 
 # Check service health

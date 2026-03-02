@@ -13,6 +13,7 @@ data/runtime/
 logs/
 *.pid
 *.log
+*.json
 
 # Security files (generated, should not be committed)
 manifest.sha256

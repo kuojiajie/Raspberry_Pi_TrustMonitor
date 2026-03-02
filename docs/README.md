@@ -10,6 +10,10 @@
 - **[Backup Management](backup-management.md)** - Backup system and recovery
 - **[User Guide](user-guide.md)** - Complete user guide and testing
 - **[Security Guide](security-guide.md)** - Security features and protection
+- **[Security Hardening](security-hardening.md)** - Systemd security restrictions (v3.1.1+)
+
+### 📝 Interface Documentation
+- **[JSON Interface](json-interface.md)** - JSON output standardization (v3.1.2+)
 
 ### 📋 Reference Documentation
 - **[Return Codes](../lib/return_codes.sh)** - Unified return code constants and error handling (see file header documentation)
