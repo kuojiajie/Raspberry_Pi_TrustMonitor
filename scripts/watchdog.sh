@@ -124,7 +124,7 @@ restart_service() {
             if systemctl is-active --quiet "$service"; then
                 watchdog_log_info "Service $service restarted successfully (attempt $retry_count)"
                 update_watchdog_status "service_restarted" "$service restarted on attempt $retry_count"
-                return 0
+                return $RC_OK
             else
                 watchdog_log_warn "Service $service restart failed (attempt $retry_count)"
             fi
@@ -137,7 +137,7 @@ restart_service() {
     
     watchdog_log_error "Failed to restart service $service after $max_retries attempts"
     update_watchdog_status "service_restart_failed" "$service failed to restart after $max_retries attempts"
-    return 1
+    return $RC_ERROR
 }
 
 # Check CPU temperature
@@ -161,14 +161,14 @@ check_cpu_temperature() {
             fi
         else
             watchdog_log_warn "CPU temperature monitoring not available on this system"
-            return 0
+            return $RC_OK
         fi
     fi
     
     # Validate temperature reading
     if ! [[ "$cpu_temp" =~ ^[0-9]+\.?[0-9]*$ ]] || (( $(awk "BEGIN {print ($cpu_temp < 0 || $cpu_temp > 150)}") )); then
         watchdog_log_warn "Invalid CPU temperature reading: ${cpu_temp}°C"
-        return 0
+        return $RC_OK
     fi
     
     # Check against error threshold
@@ -229,10 +229,10 @@ check_system_metrics() {
     # Report status
     if [[ $has_alerts -eq 1 ]]; then
         update_watchdog_status "system_critical" "System alerts detected"
-        return 1
+        return $RC_ERROR
     else
         watchdog_log_info "System metrics within normal thresholds"
-        return 0
+        return $RC_OK
     fi
 }
 

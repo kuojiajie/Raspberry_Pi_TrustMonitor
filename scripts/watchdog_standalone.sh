@@ -22,6 +22,16 @@ RUNTIME_DIR="$PROJECT_ROOT/data/runtime"
 WATCHDOG_STATE_DIR="$RUNTIME_DIR/watchdog"
 WATCHDOG_STATUS_FILE="$WATCHDOG_STATE_DIR/status"
 
+# Load return codes for standardized error handling
+if [[ -f "$PROJECT_ROOT/lib/return_codes.sh" ]]; then
+    source "$PROJECT_ROOT/lib/return_codes.sh"
+else
+    # Fallback return codes if library not available
+    readonly RC_OK=0
+    readonly RC_WARN=1
+    readonly RC_ERROR=2
+fi
+
 # Logging
 log_info() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] [WATCHDOG] $1"
@@ -107,14 +117,14 @@ check_cpu_temperature() {
             fi
         else
             log_warn "CPU temperature monitoring not available on this system"
-            return 0
+            return $RC_OK
         fi
     fi
     
     # Validate temperature reading
     if ! [[ "$cpu_temp" =~ ^[0-9]+\.?[0-9]*$ ]] || (( $(awk "BEGIN {print ($cpu_temp < 0 || $cpu_temp > 150)}") )); then
         log_warn "Invalid CPU temperature reading: ${cpu_temp}°C"
-        return 0
+        return $RC_OK
     fi
     
     # Check against error threshold
@@ -168,10 +178,10 @@ check_system_metrics() {
     # Report status
     if [[ $has_alerts -eq 1 ]]; then
         update_watchdog_status "system_critical" "System alerts detected"
-        return 1
+        return $RC_ERROR
     else
         log_info "System metrics within normal thresholds"
-        return 0
+        return $RC_OK
     fi
 }
 

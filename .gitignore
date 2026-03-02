@@ -15,6 +15,12 @@ logs/
 *.log
 *.json
 
+# Error handling logs (generated during testing)
+*error.log
+*error_*.log
+*debug.log
+*debug_*.log
+
 # Security files (generated, should not be committed)
 manifest.sha256
 manifest.sha256.sig
