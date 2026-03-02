@@ -12,6 +12,7 @@ TrustMonitor transforms a Raspberry Pi into a miniature BMC/ROT system that:
 - **🔒 Security Protection**: SHA256 integrity verification with RSA digital signatures
 - **⚡ Service Management**: Automatic startup and background monitoring
 - **🛡️ Attack Defense**: Security attack simulation and automatic recovery
+- **🔐 Systemd Hardening**: v3.1.1+ includes security-hardened systemd service
 
 ## 🚀 Quick Start (5 Minutes)
 

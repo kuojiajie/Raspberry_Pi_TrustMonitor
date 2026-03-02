@@ -64,13 +64,13 @@ bash tools/user/restore.sh --auto
 bash scripts/integrity_check.sh
 ```
 
-## � Additional Information
+## 📚 Additional Information
 
 For detailed attack scenarios, see:
 - **[Attack/Defense Demo](attack-defense-demo.md)** - Complete attack scenarios and demonstrations
 - **[Backup Management](backup-management.md)** - Backup and recovery procedures
 
-## �📁 Security Files
+## 📁 Security Files
 
 ### Important Files
 - `data/manifest.sha256` - System file hashes

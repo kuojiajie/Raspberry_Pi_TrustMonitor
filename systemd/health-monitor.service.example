@@ -20,16 +20,35 @@ WorkingDirectory=/path/to/your/trustmonitor
 # Load environment variables (update path)
 EnvironmentFile=/path/to/your/trustmonitor/config/health-monitor.env
 
+# Security hardening for v3.1.1 (balanced approach)
+NoNewPrivileges=true
+ProtectSystem=true
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/path/to/your/trustmonitor/logs /path/to/your/trustmonitor/data/runtime
+MemoryMax=512M
+CPUQuota=50%
+
+# Process restrictions
+RestrictRealtime=true
+LockPersonality=true
+RemoveIPC=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Logging -> journald with improved identification
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=trustmonitor
+
 # Start script (update path)
 ExecStart=/bin/bash /path/to/your/trustmonitor/daemon/health_monitor.sh
 
 # Restart policy
 Restart=always
 RestartSec=5
-
-# Logging -> journald (default, but we state it clearly)
-StandardOutput=journal
-StandardError=journal
 
 [Install]
 WantedBy=multi-user.target

@@ -116,7 +116,7 @@ bash scripts/integrity_check.sh
 | 🔴 Red | Error | Security compromise detected |
 | ⚫ Off | Halted | System refuses to operate |
 
-## � Troubleshooting
+## 🔧 Troubleshooting
 
 ### Service Won't Start After Attack
 ```bash
