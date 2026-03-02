@@ -50,15 +50,15 @@ cpu_temp_monitor_check() {
     
     # Compare with thresholds
     if (( $(awk "BEGIN {print ($cpu_temp >= $CPU_TEMP_ERROR)}") )); then
-        log_error_with_rc "CPU temperature too high: ${cpu_temp}°C (error threshold: ${CPU_TEMP_ERROR}°C)" $RC_ERROR
+        log_error "CPU temperature too high: ${cpu_temp}°C (error threshold: ${CPU_TEMP_ERROR}°C)" "CPU_TEMP_MONITOR"
         echo "CPU Temperature CRITICAL (temp=${cpu_temp}°C)"
         return $RC_ERROR
     elif (( $(awk "BEGIN {print ($cpu_temp >= $CPU_TEMP_WARN)}") )); then
-        log_warn "CPU temperature high: ${cpu_temp}°C (warning threshold: ${CPU_TEMP_WARN}°C)"
+        log_warn "CPU temperature high: ${cpu_temp}°C (warning threshold: ${CPU_TEMP_WARN}°C)" "CPU_TEMP_MONITOR"
         echo "CPU Temperature WARN (temp=${cpu_temp}°C)"
         return $RC_WARN
     else
-        log_info "CPU temperature normal: ${cpu_temp}°C"
+        log_info "CPU temperature normal: ${cpu_temp}°C" "CPU_TEMP_MONITOR"
         echo "CPU Temperature OK (temp=${cpu_temp}°C)"
         return $RC_OK
     fi

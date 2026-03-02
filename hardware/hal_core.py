@@ -203,8 +203,20 @@ class HALManager:
                     self.logger.error(f"Device {device_id} initialization error: {e}")
                     device.set_error(e)
                     
-            self.initialized = success_count == total_count
-            self.logger.info(f"HAL initialization complete: {success_count}/{total_count} devices ready")
+            # Allow partial success - if critical devices (like LED) work, consider it successful
+            critical_devices = ['rgb_led']
+            critical_success = all(
+                device_id in self.devices and 
+                self.devices[device_id].status == DeviceStatus.READY 
+                for device_id in critical_devices
+            )
+            
+            if critical_success:
+                self.initialized = True
+                self.logger.info(f"HAL initialization successful: {success_count}/{total_count} devices ready (critical devices OK)")
+            else:
+                self.initialized = success_count == total_count
+                self.logger.info(f"HAL initialization complete: {success_count}/{total_count} devices ready")
             
             return self.initialized
             

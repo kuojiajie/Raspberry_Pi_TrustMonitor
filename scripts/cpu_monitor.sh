@@ -26,15 +26,15 @@ cpu_monitor_check() {
     
     # Compare with thresholds
     if (( $(awk "BEGIN {print ($load1 >= $err)}") )); then
-        log_error_with_rc "CPU load critical: $load1" $RC_ERROR
+        log_error "CPU load critical: $load1" "CPU_MONITOR"
         echo "CPU CRITICAL (load1=$load1)"
         return $RC_ERROR
     elif (( $(awk "BEGIN {print ($load1 >= $warn)}") )); then
-        log_warn "CPU load warning: $load1"
+        log_warn "CPU load warning: $load1" "CPU_MONITOR"
         echo "CPU WARN (load1=$load1)"
         return $RC_WARN
     else
-        log_info "CPU load normal: $load1"
+        log_info "CPU load normal: $load1" "CPU_MONITOR"
         echo "CPU OK (load1=$load1)"
         return $RC_OK
     fi

@@ -15,6 +15,7 @@
 ### 📝 Interface Documentation
 - **[JSON Interface](json-interface.md)** - JSON output standardization (v3.1.2+)
 - **[Error Handling](error-handling.md)** - Return code standardization (v3.1.3+)
+- **[Logging Standardization](logging-standardization.md)** - Logging format standardization (v3.1.4+)
 
 ### 📋 Reference Documentation
 - **[Return Codes](../lib/return_codes.sh)** - Unified return code constants and error handling (see file header documentation)

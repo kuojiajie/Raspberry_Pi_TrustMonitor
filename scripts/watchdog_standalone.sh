@@ -32,18 +32,20 @@ else
     readonly RC_ERROR=2
 fi
 
-# Logging
-log_info() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] [WATCHDOG] $1"
+# Logging functions (standardized format)
+_log() {
+    local level="$1"
+    local component="$2"
+    local message="$3"
+    local timestamp
+    timestamp="$(date -Iseconds)"
+    echo "[$timestamp] [$level] [$component] $message"
 }
 
-log_warn() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARN] [WATCHDOG] $1"
-}
-
-log_error() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] [WATCHDOG] $1"
-}
+# Component-specific logging functions
+log_info() { _log "INFO" "WATCHDOG" "$1"; }
+log_warn() { _log "WARN" "WATCHDOG" "$1"; }
+log_error() { _log "ERROR" "WATCHDOG" "$1"; }
 
 # Initialize watchdog state
 init_watchdog_state() {

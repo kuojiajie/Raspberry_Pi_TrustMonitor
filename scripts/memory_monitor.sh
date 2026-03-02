@@ -43,15 +43,15 @@ memory_monitor_check() {
     
     # Compare with thresholds
     if (( $(awk "BEGIN {print ($avail_pct <= $err_pct)}") )); then
-        log_error_with_rc "Memory availability critical: ${avail_pct}%" $RC_ERROR
+        log_error "Memory availability critical: ${avail_pct}%" "MEMORY_MONITOR"
         echo "Memory CRITICAL (avail=${avail_pct}%)"
         return $RC_ERROR
     elif (( $(awk "BEGIN {print ($avail_pct <= $warn_pct)}") )); then
-        log_warn "Memory availability low: ${avail_pct}%"
+        log_warn "Memory availability low: ${avail_pct}%" "MEMORY_MONITOR"
         echo "Memory WARN (avail=${avail_pct}%)"
         return $RC_WARN
     else
-        log_info "Memory availability normal: ${avail_pct}%"
+        log_info "Memory availability normal: ${avail_pct}%" "MEMORY_MONITOR"
         echo "Memory OK (avail=${avail_pct}%)"
         return $RC_OK
     fi

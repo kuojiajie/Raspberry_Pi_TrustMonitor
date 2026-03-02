@@ -39,23 +39,45 @@ set_led_color() {
     local color="$1"
     boot_sequence_log_info "Setting LED color: $color"
     
-    # Try HAL LED controller first (v2.2.6+), fallback to legacy
+    # Try HAL LED controller first, fallback to legacy if HAL fails
+    local led_success=false
+    
+    # Try HAL LED controller (preferred method)
     if [[ -f "$BASE_DIR/hardware/hal_led_controller.py" ]]; then
-        timeout 2 python3 "$BASE_DIR/hardware/hal_led_controller.py" --color "$color" >/dev/null 2>&1 &
-    else
-        timeout 2 python3 "$BASE_DIR/hardware/led_controller.py" --color "$color" >/dev/null 2>&1 &
+        # Try HAL with longer timeout and error handling
+        timeout 10 python3 "$BASE_DIR/hardware/hal_led_controller.py" --color "$color" >/dev/null 2>&1 &
+        local hal_led_pid=$!
+        wait $hal_led_pid 2>/dev/null
+        local hal_result=$?
+        
+        if [[ $hal_result -eq 0 ]]; then
+            boot_sequence_log_info "LED color set via HAL: $color"
+            led_success=true
+        else
+            boot_sequence_log_warn "HAL LED controller failed, trying legacy method"
+        fi
     fi
-    local led_pid=$!
+    
+    # Fallback to legacy LED controller if HAL failed
+    if [[ "$led_success" == "false" ]]; then
+        timeout 2 python3 "$BASE_DIR/hardware/led_controller.py" --color "$color" >/dev/null 2>&1 &
+        local legacy_led_pid=$!
+        wait $legacy_led_pid 2>/dev/null
+        local legacy_result=$?
+        
+        if [[ $legacy_result -eq 0 ]]; then
+            boot_sequence_log_info "LED color set via legacy controller: $color"
+            led_success=true
+        else
+            boot_sequence_log_error "Both HAL and legacy LED controllers failed"
+        fi
+    fi
     
     # Register hardware process if function exists (called from health_monitor.sh)
     if declare -f register_hardware_process >/dev/null; then
-        register_hardware_process "$led_pid"
+        register_hardware_process "${hal_led_pid:-$legacy_led_pid}"
     fi
     
-    # Wait for LED to be set or timeout
-    wait $led_pid 2>/dev/null || true
-    
-    boot_sequence_log_info "LED color set: $color"
     return 0
 }
 
