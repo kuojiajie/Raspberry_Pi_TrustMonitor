@@ -587,14 +587,13 @@ while true; do
 
   # --- Phase 3: Watchdog & SEL Integration ---
   # Periodic Watchdog Check (every 5 minutes by default)
-  local current_time
   current_time=$(date +%s)
-  local last_watchdog_check=0
+  last_watchdog_check=0
   if [[ -f "$RUNTIME_DIR/.last_watchdog_check" ]]; then
     last_watchdog_check=$(cat "$RUNTIME_DIR/.last_watchdog_check" 2>/dev/null || echo "0")
   fi
   
-  local watchdog_interval="${WATCHDOG_INTERVAL:-300}"  # 5 minutes
+  watchdog_interval="${WATCHDOG_INTERVAL:-300}"  # 5 minutes
   if [[ $((current_time - last_watchdog_check)) -ge $watchdog_interval ]]; then
     log_info "Starting periodic watchdog check..."
     

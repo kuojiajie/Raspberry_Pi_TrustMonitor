@@ -36,7 +36,7 @@ HAL uses settings from `config/health-monitor.env`:
 
 ```bash
 USE_HAL=true                         # Enable HAL (default)
-DHT11_PIN=4                          # Sensor pin
+DHT11_PIN=17                         # Sensor pin (GPIO 17)
 LED_RED_PIN=27                        # LED pins
 LED_GREEN_PIN=22
 LED_BLUE_PIN=5

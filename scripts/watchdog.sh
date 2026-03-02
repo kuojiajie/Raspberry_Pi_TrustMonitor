@@ -33,6 +33,8 @@ WATCHDOG_SERVICES="${WATCHDOG_SERVICES:-health-monitor.service}"
 WATCHDOG_CPU_THRESHOLD="${WATCHDOG_CPU_THRESHOLD:-5.0}"      # CPU load threshold
 WATCHDOG_MEM_THRESHOLD="${WATCHDOG_MEM_THRESHOLD:-10}"      # Memory availability threshold
 WATCHDOG_DISK_THRESHOLD="${WATCHDOG_DISK_THRESHOLD:-95}"     # Disk usage threshold
+WATCHDOG_CPU_TEMP_WARN="${WATCHDOG_CPU_TEMP_WARN:-65.0}"    # CPU temperature warning threshold (°C)
+WATCHDOG_CPU_TEMP_ERROR="${WATCHDOG_CPU_TEMP_ERROR:-75.0}"  # CPU temperature error threshold (°C)
 
 # Logging functions
 watchdog_log_info() {
@@ -141,10 +143,70 @@ restart_service() {
     return 1
 }
 
+# Check CPU temperature
+check_cpu_temperature() {
+    local cpu_temp
+    local has_alerts=0
+    
+    # Use the same temperature reading method as cpu_temp_monitor.sh
+    if command -v "$SCRIPT_DIR/cpu_temp_monitor.sh" >/dev/null 2>&1; then
+        cpu_temp="$(bash "$SCRIPT_DIR/cpu_temp_monitor.sh" 2>/dev/null | grep "CPU Temperature" | awk '{print $3}' | sed 's/(.*//;s/°C//' || echo "0.0")"
+    else
+        # Fallback to thermal zone reading
+        local temp_file="/sys/class/thermal/thermal_zone0/temp"
+        if [[ -f "$temp_file" ]]; then
+            local temp_raw
+            temp_raw=$(cat "$temp_file" 2>/dev/null)
+            if [[ "$temp_raw" =~ ^[0-9]+$ ]]; then
+                cpu_temp=$(awk "BEGIN {printf \"%.1f\", $temp_raw/1000}")
+            else
+                cpu_temp="0.0"
+            fi
+        else
+            watchdog_log_warn "CPU temperature monitoring not available on this system"
+            return 0
+        fi
+    fi
+    
+    # Validate temperature reading
+    if ! [[ "$cpu_temp" =~ ^[0-9]+\.?[0-9]*$ ]] || (( $(awk "BEGIN {print ($cpu_temp < 0 || $cpu_temp > 150)}") )); then
+        watchdog_log_warn "Invalid CPU temperature reading: ${cpu_temp}°C"
+        return 0
+    fi
+    
+    # Check against error threshold
+    if (( $(awk "BEGIN {print ($cpu_temp >= $WATCHDOG_CPU_TEMP_ERROR)}") )); then
+        watchdog_log_error "CPU temperature critical: ${cpu_temp}°C (threshold: ${WATCHDOG_CPU_TEMP_ERROR}°C)"
+        update_watchdog_status "cpu_temp_critical" "CPU temperature ${cpu_temp}°C exceeds error threshold"
+        has_alerts=1
+    # Check against warning threshold
+    elif (( $(awk "BEGIN {print ($cpu_temp >= $WATCHDOG_CPU_TEMP_WARN)}") )); then
+        watchdog_log_warn "CPU temperature high: ${cpu_temp}°C (threshold: ${WATCHDOG_CPU_TEMP_WARN}°C)"
+        update_watchdog_status "cpu_temp_high" "CPU temperature ${cpu_temp}°C exceeds warning threshold"
+        has_alerts=1
+    else
+        watchdog_log_info "CPU temperature normal: ${cpu_temp}°C"
+    fi
+    
+    # Log to SEL for temperature events
+    if [[ $has_alerts -eq 1 ]]; then
+        if command -v "$SCRIPT_DIR/sel_logger.sh" >/dev/null 2>&1; then
+            "$SCRIPT_DIR/sel_logger.sh" add "CPU temperature ${cpu_temp}°C exceeds threshold" warning
+        fi
+    fi
+    
+    return $has_alerts
+}
+
 # Check system metrics
 check_system_metrics() {
     local cpu_load mem_avail disk_used
     local has_alerts=0
+    
+    # CPU temperature check (BMC standard)
+    if ! check_cpu_temperature; then
+        has_alerts=1
+    fi
     
     # CPU load check
     cpu_load="$(awk '{print $1}' /proc/loadavg)"
@@ -210,6 +272,7 @@ $(systemctl status "$WATCHDOG_SERVICES" --no-pager 2>/dev/null || echo "Service 
 
 System Metrics:
 - CPU Load: $(awk '{print $1}' /proc/loadavg)
+- CPU Temperature: $(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null | awk '{printf "%.1f", $1/1000}' || echo "N/A")°C
 - Memory Available: $(awk '/^MemAvailable:/ {printf "%.1f GB", $2/1024/1024}' /proc/meminfo)
 - Disk Usage: $(df / | awk 'NR==2 {print $5}')
 
