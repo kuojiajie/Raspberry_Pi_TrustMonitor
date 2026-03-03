@@ -4,7 +4,7 @@
 
 TrustMonitor automatically creates backups to protect your system and provide recovery options.
 
-## 🗂️ Backup Types
+## 🗂 Backup Types
 
 ### Security Backups
 - **Purpose**: Protect system integrity files
@@ -18,7 +18,7 @@ TrustMonitor automatically creates backups to protect your system and provide re
 - **Location**: `backup/attack_demo/`
 - **Contents**: Modified files for recovery
 
-## 🛠️ Backup Commands
+## 🛠 Backup Commands
 
 ### Automatic Recovery
 ```bash

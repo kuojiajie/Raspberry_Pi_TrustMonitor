@@ -20,7 +20,7 @@
 ### 📋 Reference Documentation
 - **[Return Codes](../lib/return_codes.sh)** - Unified return code constants and error handling (see file header documentation)
 
-### 🛠️ Tools Documentation
+### 🛠 Tools Documentation
 - **[Tools Guide](../tools/README.md)** - Complete tools documentation and usage examples
 
 ## 🎯 Quick Links
@@ -30,10 +30,10 @@
 - **HAL System**: [HAL System](hal-system.md) for hardware abstraction overview
 - **User Guide**: [User Guide](user-guide.md) for complete usage instructions
 - **Security Guide**: [Security Guide](security-guide.md) for security features
-- **Backup Management**: [Backup Management](backup-management.md) for backup system
+- **Testing Framework**: [Testing Framework](testing-framework.md) for complete test suite
 - **Tools Guide**: [Tools Guide](../tools/README.md) for tools and utilities documentation
 
-## 🛠️ Quick Tools Reference
+## 🛠 Quick Tools Reference
 
 ### User Tools
 ```bash
@@ -42,6 +42,9 @@ bash tools/dev/quick_test.sh
 
 # Complete system demonstration
 bash tools/user/demo.sh
+
+# Run complete test suite
+bash tests/test_runner.sh
 
 # Security testing
 bash tools/security/attack.sh --list

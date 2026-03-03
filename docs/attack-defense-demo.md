@@ -4,7 +4,7 @@
 
 Demonstrate TrustMonitor's security mechanisms through realistic attack scenarios and recovery procedures.
 
-## 🛡️ Security Features Tested
+## 🛡 Security Features Tested
 
 ### 1. **File Integrity Verification**
 - SHA256 hash monitoring of all system files

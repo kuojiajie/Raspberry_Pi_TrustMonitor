@@ -1,6 +1,6 @@
 # HAL System Overview
 
-## 🏗️ Hardware Abstraction Layer (HAL)
+## 🏗 Hardware Abstraction Layer (HAL)
 
 TrustMonitor uses a Hardware Abstraction Layer (HAL) to provide unified access to hardware components like sensors and LEDs.
 

@@ -184,7 +184,7 @@ When integrating with monitoring tools:
 if bash scripts/monitor.sh; then
     case $? in
         $RC_OK) echo "✅ Monitor OK" ;;
-        $RC_WARN) echo "⚠️ Monitor Warning" ;;
+        $RC_WARN) echo "⚠ Monitor Warning" ;;
         $RC_ERROR) echo "❌ Monitor Error" ;;
         *) echo "❓ Unknown Status" ;;
     esac

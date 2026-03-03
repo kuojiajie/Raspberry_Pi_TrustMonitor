@@ -65,7 +65,7 @@ The TrustMonitor system has been validated through comprehensive testing:
 - **SEL Event Logging Testing** - System event logging and management
 - **Service Integration Testing** - systemd service management and automatic startup
 
-### 🛠️ Quick Testing Commands
+### 🛠 Quick Testing Commands
 
 For day-to-day validation, use these simplified commands:
 

@@ -21,6 +21,14 @@ config/validation_report_*.txt
 config/validation_report_*.json
 config/validation_report_*.html
 
+# Test framework results and logs (v3.1.6+)
+tests/results/
+tests/logs/
+test_logs/
+test_results/
+test_runner_stable*.sh
+test_runner_auto*.sh
+
 # Error handling logs (generated during testing)
 *error.log
 *error_*.log

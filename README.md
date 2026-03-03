@@ -6,12 +6,12 @@ A Raspberry Pi-based monitoring system that demonstrates Baseboard Management Co
 
 TrustMonitor transforms a Raspberry Pi into a miniature BMC/ROT system that:
 
-- **🖥️ System Health Monitoring**: CPU, memory, disk, network, and temperature tracking
-- **🌡️ Hardware Integration**: DHT11 sensor and RGB LED for physical feedback
+- **🖥 System Health Monitoring**: CPU, memory, disk, network, and temperature tracking
+- **🌡 Hardware Integration**: DHT11 sensor and RGB LED for physical feedback
 - **💡 Visual Status Indicators**: LED shows system health with temperature/humidity thresholds
 - **🔒 Security Protection**: SHA256 integrity verification with RSA digital signatures
 - **⚡ Service Management**: Automatic startup and background monitoring
-- **🛡️ Attack Defense**: Security attack simulation and automatic recovery
+- **🛡 Attack Defense**: Security attack simulation and automatic recovery
 - **🔐 Systemd Hardening**: v3.1.1+ includes security-hardened systemd service
 
 ## 🚀 Quick Start (5 Minutes)
@@ -93,6 +93,21 @@ bash tools/user/sign_manifest.sh sign
 
 # Verify system integrity
 bash scripts/integrity_check.sh
+```
+
+### System Testing
+```bash
+# Run complete test suite
+bash tests/test_runner.sh
+
+# Run specific test types
+bash tests/test_runner.sh unit
+bash tests/test_runner.sh integration
+bash tests/test_runner.sh security
+
+# View test results
+ls -la tests/results/
+cat tests/results/test_report_*.txt
 ```
 
 ### System Recovery
@@ -205,7 +220,7 @@ bash tools/security/attack.sh malicious_code
 - **[HAL System](docs/hal-system.md)** - Hardware abstraction layer overview
 - **[Backup Management](docs/backup-management.md)** - Backup system and recovery
 
-## 🛠️ Advanced Configuration
+## 🛠 Advanced Configuration
 
 ### Environment Variables
 Key configuration options in `config/health-monitor.env`:
@@ -241,7 +256,7 @@ sudo journalctl -u health-monitor.service -f
 sudo journalctl -u health-monitor.service --vacuum-time=7d
 ```
 
-## 🛠️ Quick Tools
+## 🛠 Quick Tools
 
 ### System Check
 ```bash

@@ -132,7 +132,7 @@ create_signature() {
     
     # Create digital signature
     sign_log_info "Generating signature..."
-    if openssl dgst -"$HASH_ALGORITHM" -sign "$PRIVATE_KEY_FILE" -out "$SIGNATURE_FILE" "$MANIFEST_FILE" 2>/dev/null; then
+    if openssl dgst -"$HASH_ALGORITHM" -sign "$PRIVATE_KEY_FILE" "$MANIFEST_FILE" > "$SIGNATURE_FILE" 2>/dev/null; then
         sign_log_info "Signature created successfully"
     else
         sign_log_error "Failed to create signature"

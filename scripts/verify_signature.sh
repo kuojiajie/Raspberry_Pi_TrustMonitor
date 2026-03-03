@@ -100,8 +100,14 @@ verify_signature() {
     
     # Perform signature verification
     local verify_output
-    verify_output=$(openssl dgst -"$HASH_ALGORITHM" -verify "$PUBLIC_KEY_FILE" \
-                   -signature "$SIGNATURE_FILE" "$MANIFEST_FILE" 2>&1)
+    # Check if signature is base64 encoded
+    if grep -q "^[A-Za-z0-9+/]*=" "$SIGNATURE_FILE" 2>/dev/null; then
+        # Base64 encoded signature - decode first
+        verify_output=$(echo "$(<"$SIGNATURE_FILE")" | base64 -d | openssl dgst -"$HASH_ALGORITHM" -verify "$PUBLIC_KEY_FILE" - "$MANIFEST_FILE" 2>&1)
+    else
+        # Binary signature - verify directly
+        verify_output=$(openssl dgst -"$HASH_ALGORITHM" -verify "$PUBLIC_KEY_FILE" -signature "$SIGNATURE_FILE" "$MANIFEST_FILE" 2>&1)
+    fi
     local verify_result=$?
     
     if [[ $verify_result -eq $RC_OK ]]; then

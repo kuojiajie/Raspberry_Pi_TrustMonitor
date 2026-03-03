@@ -4,7 +4,7 @@
 
 TrustMonitor v3.1.1 introduces comprehensive systemd security hardening to protect the monitoring service from various attack vectors and limit potential damage.
 
-## 🛡️ Security Features Added
+## 🛡 Security Features Added
 
 ### Process Isolation
 - **NoNewPrivileges=true**: Prevents process from gaining new privileges

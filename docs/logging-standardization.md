@@ -67,7 +67,7 @@ _log() {
 | Watchdog | `[WATCHDOG]` | watchdog.sh, watchdog_standalone.sh |
 | Boot Sequence | `[BOOT]` | boot_sequence.sh |
 
-## 🛠️ HAL System Enhancements
+## 🛠 HAL System Enhancements
 
 ### Partial Success Mechanism
 ```python

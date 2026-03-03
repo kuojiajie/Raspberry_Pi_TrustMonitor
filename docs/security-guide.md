@@ -1,6 +1,6 @@
 # Security Guide
 
-## 🛡️ TrustMonitor Security Features
+## 🛡 TrustMonitor Security Features
 
 TrustMonitor provides comprehensive security protection through integrity verification, digital signatures, and attack detection.
 
@@ -150,7 +150,7 @@ sudo journalctl -u health-monitor.service | grep -i security
 sudo journalctl -u health-monitor.service | grep -i integrity
 ```
 
-## 🛡️ Advanced Security
+## 🛡 Advanced Security
 
 ### Custom Attack Scenarios
 ```bash
