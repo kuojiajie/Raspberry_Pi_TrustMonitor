@@ -44,28 +44,23 @@ set_led_color() {
     
     # Try HAL LED controller (preferred method)
     if [[ -f "$BASE_DIR/hardware/hal_led_controller.py" ]]; then
-        # Try HAL with longer timeout and error handling
-        timeout 10 python3 "$BASE_DIR/hardware/hal_led_controller.py" --color "$color" >/dev/null 2>&1 &
-        local hal_led_pid=$!
-        wait $hal_led_pid 2>/dev/null
-        local hal_result=$?
+        # Try HAL with proper timeout and error handling
+        boot_sequence_log_info "Attempting HAL LED controller..."
         
-        if [[ $hal_result -eq 0 ]]; then
+        # Use timeout to prevent hanging, with daemon mode for non-interactive operation
+        if timeout 30 python3 "$BASE_DIR/hardware/hal_led_controller.py" --color "$color" --daemon >/dev/null 2>&1; then
             boot_sequence_log_info "LED color set via HAL: $color"
             led_success=true
         else
-            boot_sequence_log_warn "HAL LED controller failed, trying legacy method"
+            boot_sequence_log_warn "HAL LED controller failed or timed out, trying legacy method"
         fi
     fi
     
     # Fallback to legacy LED controller if HAL failed
     if [[ "$led_success" == "false" ]]; then
-        timeout 2 python3 "$BASE_DIR/hardware/led_controller.py" --color "$color" >/dev/null 2>&1 &
-        local legacy_led_pid=$!
-        wait $legacy_led_pid 2>/dev/null
-        local legacy_result=$?
+        boot_sequence_log_info "Attempting legacy LED controller..."
         
-        if [[ $legacy_result -eq 0 ]]; then
+        if timeout 5 python3 "$BASE_DIR/hardware/led_controller.py" --color "$color" >/dev/null 2>&1; then
             boot_sequence_log_info "LED color set via legacy controller: $color"
             led_success=true
         else
@@ -75,7 +70,9 @@ set_led_color() {
     
     # Register hardware process if function exists (called from health_monitor.sh)
     if declare -f register_hardware_process >/dev/null; then
-        register_hardware_process "${hal_led_pid:-$legacy_led_pid}"
+        # For boot sequence, we don't have a persistent process to register
+        # This is mainly for the health monitor daemon
+        boot_sequence_log_info "LED control completed for boot sequence"
     fi
     
     return 0
@@ -85,17 +82,12 @@ blink_led_error() {
     local times="${1:-5}"  # Default 5 blinks, use 999 for infinite
     boot_sequence_log_info "Starting LED error blink sequence: $times times"
     
-    # Use hardware LED controller for blinking in background
-    timeout 10 python3 "$BASE_DIR/hardware/led_controller.py" --blink red --times "$times" >/dev/null 2>&1 &
-    local blink_pid=$!
-    
-    # Register hardware process if function exists (called from health_monitor.sh)
-    if declare -f register_hardware_process >/dev/null; then
-        register_hardware_process "$blink_pid"
+    # Use legacy LED controller for blinking (more reliable for error conditions)
+    if timeout 10 python3 "$BASE_DIR/hardware/led_controller.py" --blink red --times "$times" >/dev/null 2>&1; then
+        boot_sequence_log_info "LED error blink completed"
+    else
+        boot_sequence_log_error "LED error blink failed"
     fi
-    
-    boot_sequence_log_info "LED blink sequence started in background"
-    return 0
 }
 
 # System halt function for integrity failures
@@ -103,8 +95,8 @@ system_halt() {
     boot_sequence_log_error "SYSTEM HALT: Integrity check failed - entering deadlock"
     boot_sequence_log_error "REFUSING SERVICE: System will not enter monitoring mode"
     
-    # Start LED error indication
-    blink_led_error 999 &
+    # Start LED error indication in background for continuous blinking
+    blink_led_error 999 >/dev/null 2>&1 &
     local blink_pid=$!
     
     # Infinite loop (deadlock) - system refuses to continue

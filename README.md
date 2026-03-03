@@ -126,7 +126,7 @@ RGB LED (Common Anode):
 - **🟢 Green**: System healthy
 - **🟡 Yellow**: Warning conditions (Red + Green)
 - **🔴 Red**: Critical errors
-- **⚪ Off**: System shutdown
+- **⚪ White**: System shutdown
 
 *Note: RGB LED supports color mixing for additional states (Yellow, Cyan, Magenta, White)*
 
@@ -196,6 +196,7 @@ bash tools/security/attack.sh malicious_code
 ### For Users
 - **[Attack/Defense Demo Guide](docs/attack-defense-demo.md)** - Complete security demonstration
 - **[Backup Management](docs/backup-management.md)** - System backup and recovery
+- **[Configuration Validation](docs/configuration-validation.md)** - v3.1.5+ configuration validation guide
 
 ### For Developers
 - **[Documentation Index](docs/README.md)** - Complete technical documentation
@@ -247,6 +248,14 @@ sudo journalctl -u health-monitor.service --vacuum-time=7d
 # Quick health check (recommended for users)
 bash tools/dev/quick_test.sh
 
+# Configuration validation (v3.1.5+)
+bash tools/config/validate_config.sh
+
+# Validate specific configuration sections
+bash tools/config/validate_config.sh --system-only
+bash tools/config/validate_config.sh --paths-only
+bash tools/config/validate_config.sh --logging-only
+
 # Complete system demonstration
 bash tools/user/demo.sh
 ```
@@ -271,6 +280,14 @@ bash tools/user/sign_manifest.sh sign
 
 # Verify system integrity
 bash scripts/integrity_check.sh
+
+# Validate configuration (v3.1.5+)
+bash tools/config/validate_config.sh
+
+# Validate specific configuration sections
+bash tools/config/validate_config.sh --system-only
+bash tools/config/validate_config.sh --paths-only
+bash tools/config/validate_config.sh --logging-only
 ```
 
 ## 🔧 Troubleshooting

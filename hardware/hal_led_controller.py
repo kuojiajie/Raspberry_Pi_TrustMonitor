@@ -139,6 +139,7 @@ def main():
     parser.add_argument('--blink', choices=['red', 'green', 'blue'], help='Blink specified color')
     parser.add_argument('--times', type=int, default=3, help='Blink times')
     parser.add_argument('--speed', type=float, default=0.5, help='Blink interval (seconds)')
+    parser.add_argument('--daemon', action='store_true', help='Run in daemon mode (no interactive wait)')
     
     args = parser.parse_args()
     
@@ -148,18 +149,21 @@ def main():
         controller.initialize()
         
         if args.color:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Setting {args.color} LED - press Ctrl+C to stop")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Setting {args.color} LED")
             controller.set_pure_color(args.color)
             
-            # Wait for user interrupt
-            try:
-                while True:
-                    import time
-                    time.sleep(1)
-            except KeyboardInterrupt:
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] User interrupted, turning off LED")
-                controller.turn_off_all()
-                
+            # Wait for user interrupt unless in daemon mode
+            if not args.daemon:
+                try:
+                    while True:
+                        import time
+                        time.sleep(1)
+                except KeyboardInterrupt:
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] User interrupted, turning off LED")
+                    controller.turn_off_all()
+            else:
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {args.color} LED set (daemon mode)")
+            
         elif args.blink:
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting {args.blink} LED blinking")
             controller.blink_color(args.blink, args.times, args.speed)

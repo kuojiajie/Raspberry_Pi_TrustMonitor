@@ -114,7 +114,7 @@ bash scripts/integrity_check.sh
 | 🔵 Blue | Booting | System starting, verifying integrity |
 | 🟢 Green | Normal | All security checks passed |
 | 🔴 Red | Error | Security compromise detected |
-| ⚫ Off | Halted | System refuses to operate |
+| ⚪ White | Halted | System refuses to operate |
 
 ## 🔧 Troubleshooting
 

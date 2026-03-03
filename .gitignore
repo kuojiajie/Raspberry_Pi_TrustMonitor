@@ -2,6 +2,7 @@
 # TrustMonitor .gitignore
 # ==============================================================================
 # Clean, organized ignore patterns for TrustMonitor project
+# Updated for v3.1.5 Configuration Validation
 
 # Configuration files (user-specific)
 config/health-monitor.env
@@ -14,6 +15,11 @@ logs/
 *.pid
 *.log
 *.json
+
+# Configuration validation reports (v3.1.5+)
+config/validation_report_*.txt
+config/validation_report_*.json
+config/validation_report_*.html
 
 # Error handling logs (generated during testing)
 *error.log
