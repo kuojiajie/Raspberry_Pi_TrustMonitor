@@ -97,6 +97,9 @@ bash scripts/integrity_check.sh
 
 ### System Testing
 ```bash
+# Run automated stable tests (100% reliable)
+bash tests/test_runner_auto.sh
+
 # Run complete test suite
 bash tests/test_runner.sh
 

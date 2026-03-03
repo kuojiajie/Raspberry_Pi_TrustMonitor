@@ -26,8 +26,10 @@ tests/results/
 tests/logs/
 test_logs/
 test_results/
+# Test runner scripts (temporary files)
 test_runner_stable*.sh
 test_runner_auto*.sh
+test_runner_manual*.sh
 
 # Error handling logs (generated during testing)
 *error.log

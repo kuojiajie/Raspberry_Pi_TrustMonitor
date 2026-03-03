@@ -10,6 +10,7 @@ TrustMonitor 測試框架提供完整的系統測試覆蓋，包括單元測試�
 tests/
 ├── README.md                    # 本文件
 ├── test_runner.sh              # 主測試運行器 (完整測試)
+├── test_runner_auto.sh          # 自動化穩定測試 (v3.1.7+)
 ├── unit/                       # 單元測試
 │   ├── test_logger.sh
 │   ├── test_return_codes.sh
@@ -30,6 +31,18 @@ tests/
 ```
 
 ## 🚀 快速開始
+
+### 🟢 自動化穩定測試 (v3.1.7+)
+```bash
+# 100% 穩定測試 - 無需手動干預
+bash tests/test_runner_auto.sh
+
+特點:
+- 100% 穩定測試套件
+- 零手動干預
+- 完全自動化
+- CI/CD 就緒
+```
 
 ### 運行完整測試
 ```bash

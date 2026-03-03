@@ -19,6 +19,8 @@
 
 ### 📋 Reference Documentation
 - **[Return Codes](../lib/return_codes.sh)** - Unified return code constants and error handling (see file header documentation)
+- **[Configuration Validation](configuration-validation.md)** - Configuration validation system (v3.1.5+)
+- **[Testing Framework](testing-framework.md)** - Testing framework and automation (v3.1.7+)
 
 ### 🛠 Tools Documentation
 - **[Tools Guide](../tools/README.md)** - Complete tools documentation and usage examples
