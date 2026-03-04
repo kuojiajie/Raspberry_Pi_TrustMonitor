@@ -76,8 +76,9 @@ create_backup() {
         "scripts/integrity_check.sh"
         "scripts/boot_sequence.sh"
         "scripts/cpu_monitor.sh"
-        "manifest.sha256"
-        "manifest.sha256.sig"
+        "data/integrity/manifest.sha256"
+        "data/integrity/manifest.sha256.sig"
+        "data/integrity/public_key.pem"
     )
     
     for file in "${critical_files[@]}"; do

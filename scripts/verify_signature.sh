@@ -5,25 +5,20 @@
 
 set -u
 
-# Script directory and project base
+# Load TrustMonitor initialization system
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/../lib/trustmon_init.sh"
 
-# Load environment variables (if exists)
-ENV_FILE="$BASE_DIR/config/health-monitor.env"
-if [[ -f "$ENV_FILE" ]]; then
-    # shellcheck disable=SC1090
-    source "$ENV_FILE"
-fi
+# Initialize this script
+init_trustmon_script "verify_signature.sh"
 
-# Load logger and return codes
-source "$BASE_DIR/lib/logger.sh"
-source "$BASE_DIR/lib/return_codes.sh"
+# Load path manager for secure structure
+source "$SCRIPT_DIR/../lib/path_manager.sh"
 
-# Configuration
-MANIFEST_FILE="${MANIFEST_FILE:-$BASE_DIR/manifest.sha256}"
-SIGNATURE_FILE="${SIGNATURE_FILE:-$BASE_DIR/manifest.sha256.sig}"
-PUBLIC_KEY_FILE="${PUBLIC_KEY_FILE:-$BASE_DIR/keys/public_key.pem}"
+# Configuration (using secure paths)
+MANIFEST_FILE="$MANIFEST_FILE"
+SIGNATURE_FILE="$SIGNATURE_FILE"
+PUBLIC_KEY_FILE="$PUBLIC_KEY_FILE"
 HASH_ALGORITHM="${HASH_ALGORITHM:-sha256}"
 
 # Plugin metadata
@@ -100,10 +95,10 @@ verify_signature() {
     
     # Perform signature verification
     local verify_output
-    # Check if signature is base64 encoded
-    if grep -q "^[A-Za-z0-9+/]*=" "$SIGNATURE_FILE" 2>/dev/null; then
+    # Check if signature is base64 encoded (text) or binary
+    if file "$SIGNATURE_FILE" | grep -q "text\|ASCII"; then
         # Base64 encoded signature - decode first
-        verify_output=$(echo "$(<"$SIGNATURE_FILE")" | base64 -d | openssl dgst -"$HASH_ALGORITHM" -verify "$PUBLIC_KEY_FILE" - "$MANIFEST_FILE" 2>&1)
+        verify_output=$(echo "$(<"$SIGNATURE_FILE")" | base64 -d 2>/dev/null | openssl dgst -"$HASH_ALGORITHM" -verify "$PUBLIC_KEY_FILE" - "$MANIFEST_FILE" 2>&1)
     else
         # Binary signature - verify directly
         verify_output=$(openssl dgst -"$HASH_ALGORITHM" -verify "$PUBLIC_KEY_FILE" -signature "$SIGNATURE_FILE" "$MANIFEST_FILE" 2>&1)

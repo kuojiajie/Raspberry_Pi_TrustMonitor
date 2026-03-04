@@ -40,10 +40,12 @@ SYSTEMD_DIR="$PROJECT_ROOT/systemd"
 # Data Subdirectories
 KEYS_DIR="$DATA_DIR/keys"
 RUNTIME_DIR="$DATA_DIR/runtime"
+INTEGRITY_DIR="$DATA_DIR/integrity"
 
-# Security Files
-MANIFEST_FILE="$DATA_DIR/manifest.sha256"
-SIGNATURE_FILE="$DATA_DIR/manifest.sha256.sig"
+# Security Files (new secure structure)
+MANIFEST_FILE="$INTEGRITY_DIR/manifest.sha256"
+SIGNATURE_FILE="$INTEGRITY_DIR/manifest.sha256.sig"
+PUBLIC_KEY_FILE="$INTEGRITY_DIR/public_key.pem"
 LAST_INTEGRITY_CHECK_FILE="$RUNTIME_DIR/.last_integrity_check"
 
 # Tool Subdirectories

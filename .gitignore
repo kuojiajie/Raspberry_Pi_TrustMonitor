@@ -2,7 +2,7 @@
 # TrustMonitor .gitignore
 # ==============================================================================
 # Clean, organized ignore patterns for TrustMonitor project
-# Updated for v3.1.7 Testing Framework Refactor
+# Updated for v3.1.8 Production Security Architecture
 
 # Configuration files (user-specific)
 config/health-monitor.env
@@ -15,6 +15,18 @@ logs/
 *.pid
 *.log
 *.json
+
+# Runtime data should not be in repo
+data/manifest.sha256
+data/manifest.sha256.sig
+data/runtime/
+data/*.log
+data/*.json
+
+# NEW: Integrity directory (production structure)
+data/integrity/manifest.sha256
+data/integrity/manifest.sha256.sig
+!data/integrity/public_key.pem
 
 # Configuration validation reports (v3.1.5+)
 config/validation_report_*.txt
@@ -29,6 +41,7 @@ test_logs/
 test_results/
 tests/test_results_*.json
 tests/test_report_*.txt
+
 # Test runner scripts (temporary files)
 test_runner_stable*.sh
 test_runner_auto*.sh
@@ -45,6 +58,19 @@ manifest.sha256
 manifest.sha256.sig
 keys/
 data/keys/
+data/keys/backup_*/
+
+# NEVER commit private keys - CRITICAL SECURITY
+**/private_key.pem
+data/keys/private_key.pem
+backup/**/private_key.pem
+keys/private_key.pem
+data/keys/
+backup/security/keys/
+keys/
+
+# Public keys are OK for verification only in integrity directory
+!data/integrity/public_key.pem
 
 # Backup directories (generated)
 backup/
@@ -53,8 +79,25 @@ backup/
 # Python cache
 __pycache__/
 *.py[cod]
+*.pyc
+*.pyo
 *.so
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Development files
 *.tmp
@@ -70,3 +113,6 @@ __pycache__/
 # System service (user-specific paths)
 systemd/health-monitor.service
 systemd/health-monitor.service.*
+
+# Legacy directories (v3.1.8 migration)
+data/keys/backup_*/

@@ -12,7 +12,8 @@ TrustMonitor transforms a Raspberry Pi into a miniature BMC/ROT system that:
 - **🔒 Security Protection**: SHA256 integrity verification with RSA digital signatures
 - **⚡ Service Management**: Automatic startup and background monitoring
 - **🧪 Comprehensive Testing**: 100% reliable test framework with unit, integration, and security tests
-- **🔐 Systemd Hardening**: v3.1.1+ includes security-hardened systemd service
+- **🔐 Production Security**: v3.1.8+ includes production-grade security with no private keys on device
+- **🛡️ Systemd Hardening**: v3.1.1+ includes security-hardened systemd service
 
 ## 🚀 Quick Start (5 Minutes)
 
@@ -84,15 +85,18 @@ sudo systemctl restart health-monitor.service
 
 ### Security Management
 ```bash
-# Generate security keys (first time only)
+# Development: Generate security keys (first time only)
 bash tools/user/gen_keypair.sh generate
 
 # Update system integrity after changes
 bash tools/user/gen_hash.sh generate
 bash tools/user/sign_manifest.sh sign
 
-# Verify system integrity
+# Production: Verify system integrity (no private keys needed)
 bash scripts/integrity_check.sh
+
+# Verify digital signature
+bash scripts/verify_signature.sh
 ```
 
 ### System Testing

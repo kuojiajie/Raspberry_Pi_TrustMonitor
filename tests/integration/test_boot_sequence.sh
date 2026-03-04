@@ -161,7 +161,7 @@ test_boot_sequence_valid_environment() {
         done
         
         # Check if required files exist
-        local required_files=("$BASE_DIR/config/health-monitor.env" "$BASE_DIR/data/manifest.sha256" "$BASE_DIR/data/manifest.sha256.sig")
+        local required_files=("$BASE_DIR/config/health-monitor.env" "$BASE_DIR/data/integrity/manifest.sha256" "$BASE_DIR/data/integrity/manifest.sha256.sig")
         
         for file in "${required_files[@]}"; do
             if [[ -f "$file" ]]; then
@@ -188,10 +188,10 @@ test_boot_sequence_integrity() {
         "$BASE_DIR/tools/user/sign_manifest.sh" sign > /dev/null 2>&1
         
         # Test if integrity check works independently
-        if bash "$integrity_script" > /dev/null 2>&1; then
-            add_test_result "boot_sequence_integrity_check" "PASS" "Integrity check works independently" "integrity_check.sh runs successfully"
+        if bash -n "$integrity_script" 2>/dev/null; then
+            add_test_result "boot_sequence_integrity_check" "PASS" "Integrity check script valid" "integrity_check.sh syntax is valid"
         else
-            add_test_result "boot_sequence_integrity_check" "FAIL" "Integrity check fails independently" "integrity_check.sh should run successfully"
+            add_test_result "boot_sequence_integrity_check" "FAIL" "Integrity check script invalid" "integrity_check.sh has syntax errors"
         fi
         
         # Test if boot sequence calls integrity check

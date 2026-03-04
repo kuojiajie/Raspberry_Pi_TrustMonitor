@@ -191,6 +191,39 @@ EOF
     log_info "[TEST_RUNNER] Test report generated: $report_file"
 }
 
+# Clean old test results (keep latest 5)
+clean_old_test_results() {
+    log_info "[TEST_RUNNER] Cleaning old test results (keeping latest 5)..."
+    
+    local cleaned_count=0
+    
+    # Clean old test report files (keep latest 5)
+    if [[ -d "$TEST_RESULTS_DIR" ]]; then
+        local report_files_to_remove
+        report_files_to_remove=$(find "$TEST_RESULTS_DIR" -name "test_report_*.txt" -type f | sort -r | tail -n +6)
+        if [[ -n "$report_files_to_remove" ]]; then
+            echo "$report_files_to_remove" | xargs rm -f
+            cleaned_count=$(echo "$report_files_to_remove" | wc -l)
+            log_info "[TEST_RUNNER] Removed $cleaned_count old test report files"
+        fi
+        
+        # Clean old test result JSON files (keep latest 5)
+        local json_files_to_remove
+        json_files_to_remove=$(find "$TEST_RESULTS_DIR" -name "test_results_*.json" -type f | sort -r | tail -n +6)
+        if [[ -n "$json_files_to_remove" ]]; then
+            echo "$json_files_to_remove" | xargs rm -f
+            cleaned_count=$((cleaned_count + $(echo "$json_files_to_remove" | wc -l)))
+            log_info "[TEST_RUNNER] Removed old test result JSON files"
+        fi
+    fi
+    
+    if [[ $cleaned_count -gt 0 ]]; then
+        log_info "[TEST_RUNNER] Test cleanup completed: $cleaned_count files removed"
+    else
+        log_info "[TEST_RUNNER] No old test files to clean"
+    fi
+}
+
 # Show help
 show_help() {
     cat << EOF
@@ -330,6 +363,9 @@ main() {
     
     # Generate final report
     generate_test_report
+    
+    # Clean old test results (keep latest 5)
+    clean_old_test_results
     
     # Show summary
     if [[ "$quiet" != "true" ]]; then

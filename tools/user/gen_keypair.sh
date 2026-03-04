@@ -81,8 +81,14 @@ create_key_directory() {
     fi
 }
 
-# Backup existing keys
+# Backup existing keys (only if not in test mode)
 backup_existing_keys() {
+    # Skip backup if TEST_MODE is enabled (for automated testing)
+    if [[ "${TEST_MODE:-false}" == "true" ]]; then
+        gen_keypair_log_info "Test mode detected, skipping key backup"
+        return 0
+    fi
+    
     local backup_dir="$KEY_DIR/backup_$(date +%Y%m%d_%H%M%S)"
     
     if [[ -f "$PRIVATE_KEY_FILE" ]] || [[ -f "$PUBLIC_KEY_FILE" ]]; then

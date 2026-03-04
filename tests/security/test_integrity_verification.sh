@@ -119,13 +119,12 @@ test_integrity_tools_exist() {
 
 # Test hash generation (read-only verification)
 test_hash_generation() {
-    echo "Testing hash generation (read-only verification)..."
+    echo "Testing hash generation..."
     
     local gen_hash_script="$BASE_DIR/tools/user/gen_hash.sh"
-    local manifest_file="$BASE_DIR/data/manifest.sha256"
+    local manifest_file="$BASE_DIR/data/integrity/manifest.sha256"
     
     if [[ -x "$gen_hash_script" ]]; then
-        # Test that hash generation tool exists and is executable
         add_test_result "hash_generation" "PASS" "Hash generation tool available" "gen_hash.sh exists and executable"
         
         # Check if production manifest file exists and is valid
@@ -136,7 +135,7 @@ test_hash_generation() {
                 add_test_result "hash_manifest_created" "FAIL" "Production manifest invalid" "manifest.sha256 doesn't contain valid hashes"
             fi
         else
-            add_test_result "hash_manifest_created" "FAIL" "Production manifest missing" "manifest.sha256 not found"
+            add_test_result "hash_manifest_created" "FAIL" "Production manifest missing" "manifest.sha256 not found in integrity directory"
         fi
     else
         add_test_result "hash_generation" "SKIP" "Hash generation tool not available" "Cannot test hash generation"
@@ -146,15 +145,13 @@ test_hash_generation() {
 
 # Test manifest signing (read-only verification)
 test_manifest_signing() {
-    echo "Testing manifest signing (read-only verification)..."
+    echo "Testing manifest signing..."
     
     local sign_script="$BASE_DIR/tools/user/sign_manifest.sh"
-    local signature_file="$BASE_DIR/data/manifest.sha256.sig"
-    local manifest_file="$BASE_DIR/data/manifest.sha256"
+    local signature_file="$BASE_DIR/data/integrity/manifest.sha256.sig"
     
-    if [[ -r "$sign_script" ]]; then
-        # Test that signing tool exists and is readable
-        add_test_result "manifest_signing" "PASS" "Manifest signing tool available" "sign_manifest.sh exists and readable"
+    if [[ -x "$sign_script" ]]; then
+        add_test_result "manifest_signing" "PASS" "Manifest signing tool available" "sign_manifest.sh exists and executable"
         
         # Check if production signature file exists and is valid
         if [[ -f "$signature_file" ]]; then
@@ -164,7 +161,7 @@ test_manifest_signing() {
                 add_test_result "signature_file_created" "PASS" "Production signature exists" "manifest.sha256.sig contains signature data"
             fi
         else
-            add_test_result "signature_file_created" "FAIL" "Production signature missing" "manifest.sha256.sig not found"
+            add_test_result "signature_file_created" "FAIL" "Production signature missing" "manifest.sha256.sig not found in integrity directory"
         fi
     else
         add_test_result "manifest_signing" "SKIP" "Signing tool not available" "Cannot test manifest signing"
@@ -310,70 +307,40 @@ test_integrity_performance() {
         else
             add_test_result "integrity_performance" "FAIL" "Performance too slow" "Integrity check took ${duration}ms (>10s)"
         fi
-    else
-        add_test_result "integrity_performance" "SKIP" "Integrity tools not available" "Cannot test performance"
     fi
 }
 
-# Test key generation (read-only verification)
+# Test key generation tool availability (NO key generation - security)
 test_key_generation() {
-    echo "Testing key generation (read-only verification)..."
+    echo "Testing key generation tool availability..."
     
     local gen_keypair_script="$BASE_DIR/tools/user/gen_keypair.sh"
-    local private_key="$BASE_DIR/data/keys/private_key.pem"
-    local public_key="$BASE_DIR/data/keys/public_key.pem"
     
     if [[ -x "$gen_keypair_script" ]]; then
         # Test that key generation tool exists and is executable
         add_test_result "key_generation" "PASS" "Key generation tool available" "gen_keypair.sh exists and executable"
         
-        # Check if production key files exist and are valid
-        if [[ -f "$private_key" && -f "$public_key" ]]; then
-            if grep -q "BEGIN.*PRIVATE KEY" "$private_key" && grep -q "BEGIN.*PUBLIC KEY" "$public_key"; then
-                add_test_result "key_files_created" "PASS" "Production keys valid" "Both private and public keys contain valid PEM format"
-            else
-                add_test_result "key_files_created" "FAIL" "Production keys invalid" "Key files don't contain valid PEM format"
-            fi
+        # SECURITY: Verify NO private keys exist anywhere in production
+        local private_key_legacy="$BASE_DIR/data/keys/private_key.pem"
+        local private_key_integrity="$BASE_DIR/data/integrity/private_key.pem"
+        
+        if [[ ! -f "$private_key_legacy" && ! -f "$private_key_integrity" ]]; then
+            add_test_result "key_files_created" "PASS" "Production secure" "No private keys on device - security compliant"
         else
-            add_test_result "key_files_created" "FAIL" "Production keys missing" "Missing key files in data/keys/"
+            add_test_result "key_files_created" "FAIL" "Security violation" "Private key found on production device"
+        fi
+        
+        # Verify public key exists in integrity directory
+        local public_key="$BASE_DIR/data/integrity/public_key.pem"
+        if [[ -f "$public_key" ]]; then
+            add_test_result "public_key_integrity" "PASS" "Public key in integrity dir" "Public key found in data/integrity/"
+        else
+            add_test_result "public_key_integrity" "FAIL" "Missing public key" "Public key not found in data/integrity/"
         fi
     else
         add_test_result "key_generation" "SKIP" "Key generation tool not available" "Cannot test key generation"
         add_test_result "key_files_created" "SKIP" "Key generation tool not available" "Cannot test key creation"
-    fi
-}
-
-# Test key management
-test_key_management() {
-    echo "Testing key management..."
-    
-    local gen_keypair_script="$BASE_DIR/tools/user/gen_keypair.sh"
-    local keys_dir="$BASE_DIR/data/keys"
-    
-    if [[ -x "$gen_keypair_script" ]]; then
-        # Test key generation
-        if "$gen_keypair_script" generate >/dev/null 2>&1; then
-            add_test_result "key_generation" "PASS" "Key generation works" "gen_keypair.sh generate works"
-        else
-            add_test_result "key_generation" "FAIL" "Key generation failed" "gen_keypair.sh generate failed"
-        fi
-        
-        # Check if key files are created
-        local private_key="$keys_dir/private_key.pem"
-        local public_key="$keys_dir/public_key.pem"
-        
-        if [[ -f "$private_key" && -f "$public_key" ]]; then
-            if grep -q "BEGIN.*PRIVATE KEY" "$private_key" && grep -q "BEGIN.*PUBLIC KEY" "$public_key"; then
-                add_test_result "key_files_created" "PASS" "Key files created" "Both private and public key files created"
-            else
-                add_test_result "key_files_created" "FAIL" "Key files invalid" "Key files don't contain valid PEM format"
-            fi
-        else
-            add_test_result "key_files_created" "FAIL" "Key files not created" "Key files not found"
-        fi
-    else
-        add_test_result "key_generation" "SKIP" "Key generation tool not available" "Cannot test key generation"
-        add_test_result "key_files_created" "SKIP" "Key generation tool not available" "Cannot test key file creation"
+        add_test_result "public_key_integrity" "SKIP" "Key generation tool not available" "Cannot test public key"
     fi
 }
 

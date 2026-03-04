@@ -1,0 +1,30 @@
+[Unit]
+Description=TrustMonitor Security Daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/kuojiajie9999/Raspberry_Pi_TrustMonitor/daemon/health_monitor.sh
+Restart=always
+RestartSec=10
+
+# Security sandboxing
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/kuojiajie9999/Raspberry_Pi_TrustMonitor/data/runtime /home/kuojiajie9999/Raspberry_Pi_TrustMonitor/logs
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+
+# User permissions
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,23 @@
+# TrustMonitor log rotation
+/home/kuojiajie9999/Raspberry_Pi_TrustMonitor/logs/*.log {
+    daily
+    missingok
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    create 644 root root
+    maxsize 5M
+}
+
+/home/kuojiajie9999/Raspberry_Pi_TrustMonitor/data/runtime/sel.log {
+    daily
+    missingok
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    create 644 root root
+    maxsize 5M
+}
+

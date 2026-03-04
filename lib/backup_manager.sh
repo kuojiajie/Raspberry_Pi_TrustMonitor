@@ -16,12 +16,17 @@ BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 BACKUP_ROOT_DIR="$BASE_DIR/backup"
 SECURITY_BACKUP_DIR="$BACKUP_ROOT_DIR/security"
 DEMO_BACKUP_DIR="$BACKUP_ROOT_DIR/attack_demo"
+CONFIG_BACKUP_DIR="$BACKUP_ROOT_DIR/config"
+
+# New organized backup structure (NO KEYS - security)
+SECURITY_MANIFEST_BACKUP_DIR="$SECURITY_BACKUP_DIR/manifest"
+# KEYS ARE NOT BACKED UP ON PRODUCTION SYSTEMS
 
 # Backup retention settings (days) - allow environment override
 SECURITY_BACKUP_RETENTION=${SECURITY_BACKUP_RETENTION:-7}      # Keep security backups for 7 days
 DEMO_BACKUP_RETENTION=${DEMO_BACKUP_RETENTION:-3}             # Keep demo backups for 3 days
-MAX_SECURITY_BACKUPS=${MAX_SECURITY_BACKUPS:-10}              # Max 10 security backups
-MAX_DEMO_BACKUPS=${MAX_DEMO_BACKUPS:-5}                       # Max 5 demo backups
+MAX_SECURITY_BACKUPS=${MAX_SECURITY_BACKUPS:-5}               # Max 5 security backups
+MAX_DEMO_BACKUPS=${MAX_DEMO_BACKUPS:-5}                        # Max 5 demo backups
 
 # Logging functions
 backup_log_info() {
@@ -43,13 +48,20 @@ init_backup_dirs() {
     # Create main backup directories
     mkdir -p "$SECURITY_BACKUP_DIR"
     mkdir -p "$DEMO_BACKUP_DIR"
+    mkdir -p "$CONFIG_BACKUP_DIR"
+    
+    # Create organized security backup subdirectories (NO KEYS)
+    mkdir -p "$SECURITY_MANIFEST_BACKUP_DIR"
+    # KEYS DIRECTORY IS NOT CREATED - SECURITY MEASURE
     
     # Ensure proper permissions
     chmod 755 "$BACKUP_ROOT_DIR"
     chmod 755 "$SECURITY_BACKUP_DIR"
     chmod 755 "$DEMO_BACKUP_DIR"
+    chmod 755 "$CONFIG_BACKUP_DIR"
+    chmod 755 "$SECURITY_MANIFEST_BACKUP_DIR"
     
-    backup_log_info "Backup directories initialized"
+    backup_log_info "Backup directories initialized (keys excluded for security)"
     return $RC_OK
 }
 
@@ -175,32 +187,35 @@ cleanup_demo_backups() {
     return $RC_OK
 }
 
-# Create security backup with timestamp
+# Create security backup with timestamp (MANIFEST ONLY)
 create_security_backup() {
     local timestamp
     timestamp=$(date +%Y%m%d_%H%M%S)
     
     backup_log_info "Creating security backup: $timestamp"
     
-    local backup_dir="$SECURITY_BACKUP_DIR/$timestamp"
-    mkdir -p "$backup_dir"
+    # Backup manifest files to organized structure
+    local manifest_backup_dir="$SECURITY_MANIFEST_BACKUP_DIR/$timestamp"
+    mkdir -p "$manifest_backup_dir"
     
-    # Backup critical security files
-    local security_files=(
+    # Backup critical manifest files
+    local manifest_files=(
         "manifest.sha256"
         "manifest.sha256.sig"
-        "keys/"
     )
     
-    for item in "${security_files[@]}"; do
-        if [[ -e "$BASE_DIR/$item" ]]; then
-            cp -r "$BASE_DIR/$item" "$backup_dir/"
-            backup_log_info "Backed up: $item"
+    for file in "${manifest_files[@]}"; do
+        if [[ -e "$BASE_DIR/$file" ]]; then
+            cp "$BASE_DIR/$file" "$manifest_backup_dir/"
+            backup_log_info "Backed up manifest: $file"
         fi
     done
     
-    backup_log_info "Security backup created: $backup_dir"
-    echo "$backup_dir"
+    # NOTE: Private keys are NEVER backed up on production systems
+    # Only public key exists in integrity directory for verification
+    backup_log_info "Security backup created (manifest only - keys excluded for security)"
+    backup_log_info "  Manifest: $manifest_backup_dir"
+    
     return $RC_OK
 }
 

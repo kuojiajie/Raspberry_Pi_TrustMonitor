@@ -201,15 +201,22 @@ regenerate_security_files() {
         return 1
     fi
     
-    # Generate new key pair if needed
-    if [[ ! -f "$PROJECT_ROOT/keys/private_key.pem" ]] || [[ ! -f "$PROJECT_ROOT/keys/public_key.pem" ]]; then
-        log_info "Generating new RSA key pair..."
+    # Generate new key pair if needed (for demo only)
+    if [[ ! -f "$PROJECT_ROOT/data/keys/private_key.pem" ]] || [[ ! -f "$PROJECT_ROOT/data/keys/public_key.pem" ]]; then
+        log_info "Generating new RSA key pair (demo mode)..."
         if bash "$PROJECT_ROOT/tools/user/gen_keypair.sh" generate; then
             log_info "✅ RSA key pair generated"
         else
             log_error "❌ Failed to generate RSA key pair"
             return 1
         fi
+    fi
+    
+    # Copy public key to integrity directory for production structure
+    if [[ -f "$PROJECT_ROOT/data/keys/public_key.pem" ]]; then
+        mkdir -p "$PROJECT_ROOT/data/integrity"
+        cp "$PROJECT_ROOT/data/keys/public_key.pem" "$PROJECT_ROOT/data/integrity/public_key.pem"
+        log_info "✅ Public key copied to integrity directory"
     fi
     
     # Create new signature
