@@ -1,7 +1,6 @@
 #!/bin/bash
 # lib/backup_manager.sh
 # Unified backup file management and cleanup system
-# v2.2.4 - Centralized backup file handling
 
 set -u
 

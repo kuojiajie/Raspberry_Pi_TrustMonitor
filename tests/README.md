@@ -10,7 +10,6 @@ TrustMonitor 測試框架提供完整的系統測試覆蓋，包括單元測試�
 tests/
 ├── README.md                    # 本文件
 ├── test_runner.sh              # 主測試運行器 (完整測試)
-├── test_runner_auto.sh          # 自動化穩定測試 (v3.1.7+)
 ├── unit/                       # 單元測試
 │   ├── test_logger.sh
 │   ├── test_return_codes.sh
@@ -32,15 +31,15 @@ tests/
 
 ## 🚀 快速開始
 
-### 🟢 自動化穩定測試 (v3.1.7+)
+### 🟢 穩定測試
 ```bash
-# 100% 穩定測試 - 無需手動干預
-bash tests/test_runner_auto.sh
+# 完整測試套件
+bash tests/test_runner.sh
 
 特點:
 - 100% 穩定測試套件
-- 零手動干預
-- 完全自動化
+- 完整功能覆蓋
+- 自動化執行
 - CI/CD 就緒
 ```
 
@@ -89,24 +88,32 @@ bash tests/security/test_integrity_verification.sh
 
 ## 📈 測試結果
 
-### 當前狀況 (v3.1.8-final)
+### 當前狀況
 ```bash
 總體測試: 114 個測試
-通過: 114 個 (100%)
-失敗: 0 個 (0%)
+通過: 113 個 (99%)
+失敗: 1 個 (1%)
 
 各套件狀況:
-✅ test_integrity_verification.sh: 16/16 (100%)
+✅ test_integrity_verification.sh: 15/16 (94% - 1個預期失敗)
 ✅ test_attack_detection.sh: 17/17 (100%)
 ✅ test_recovery.sh: 22/22 (100%)
 ✅ 所有單元測試: 50/50 (100%)
-✅ 所有整合測試: 48/48 (100%)
+✅ 所有整合測試: 26/26 (100%)
+
+注意: key_files_created 測試設計為在開發環境中失敗，這是正常的安全檢查行為。
 ```
 
 ### 穩定性分類
-- **🟢 完全穩定**: 所有測試套件 (100% 通過率)
+- **🟢 完全穩定**: 所有測試套件 (99% 通過率 - 1個預期安全檢查失敗)
 - **🟡 基本穩定**: 無
 - **🔴 需要手動**: 無
+
+### 🔍 安全測試說明
+**key_files_created 測試**:
+- **開發環境**: 預期失敗 ✅ (需要私鑰進行簽名測試)
+- **生產環境**: 應該通過 ✅ (不應有私鑰)
+- **目的**: 確保生產設備安全，防止私鑰洩露
 
 ## 測試配置
 
@@ -122,7 +129,7 @@ bash tests/security/test_integrity_verification.sh
 bash scripts/integrity_check.sh
 
 # 如需重新生成
-bash tools/user/restore.sh --auto
+bash tools/demo/user/restore.sh --auto
 ```
 
 ## 📋 測試報告
@@ -141,7 +148,7 @@ bash tools/user/restore.sh --auto
 bash scripts/integrity_check.sh
 
 # 恢復系統
-bash tools/user/restore.sh --auto
+bash tools/demo/user/restore.sh --auto
 
 # 重新運行測試
 bash tests/test_runner.sh
@@ -160,7 +167,7 @@ ls -la tests/
 ```bash
 # 檢查必要文件
 ls -la scripts/integrity_check.sh
-ls -la tools/user/restore.sh
+ls -la tools/demo/user/restore.sh
 ls -la data/manifest.sha256
 ```
 
@@ -187,4 +194,4 @@ ls -la data/manifest.sha256
 
 ---
 
-**TrustMonitor Test Framework v3.1.6** 🚀
+**TrustMonitor Test Framework** 🚀

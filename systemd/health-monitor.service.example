@@ -20,7 +20,7 @@ WorkingDirectory=/path/to/your/trustmonitor
 # Load environment variables (update path)
 EnvironmentFile=/path/to/your/trustmonitor/config/health-monitor.env
 
-# Security hardening for v3.1.1 (balanced approach)
+# Security hardening (balanced approach)
 NoNewPrivileges=true
 ProtectSystem=true
 ProtectHome=read-only

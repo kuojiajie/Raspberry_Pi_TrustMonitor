@@ -26,7 +26,7 @@ TrustMonitor provides comprehensive security protection through integrity verifi
 ### First Time Setup
 ```bash
 # Generate security keys (one-time)
-bash tools/user/gen_keypair.sh
+bash tools/user/gen_keypair.sh generate
 
 # Create initial security files
 bash tools/user/gen_hash.sh generate
@@ -47,10 +47,10 @@ bash tools/dev/quick_test.sh
 ### Attack Simulation
 ```bash
 # See available attack scenarios
-bash tools/security/attack.sh --list
+bash tools/demo/security/attack.sh --list
 
 # Run specific attack
-bash tools/security/attack.sh malicious_code
+bash tools/demo/security/attack.sh malicious_code
 
 # System will detect and halt
 ```
@@ -58,7 +58,7 @@ bash tools/security/attack.sh malicious_code
 ### Recovery After Attack
 ```bash
 # Automatic recovery
-bash tools/user/restore.sh --auto
+bash tools/demo/user/restore.sh --auto
 
 # Verify recovery
 bash scripts/integrity_check.sh
@@ -106,10 +106,10 @@ BACKUP_RETENTION_DAYS=7           # Backup retention
 ### Recovery Steps
 ```bash
 # Check system status
-bash tools/user/restore.sh --status
+bash tools/demo/user/restore.sh --status
 
 # Automatic recovery
-bash tools/user/restore.sh --auto
+bash tools/demo/user/restore.sh --auto
 
 # Verify recovery
 bash scripts/integrity_check.sh
@@ -155,22 +155,22 @@ sudo journalctl -u health-monitor.service | grep -i integrity
 ### Custom Attack Scenarios
 ```bash
 # Multiple attacks
-bash tools/security/attack.sh multiple
+bash tools/demo/security/attack.sh multiple
 
 # Configuration tampering
-bash tools/security/attack.sh config_tamper
+bash tools/demo/security/attack.sh config_tamper
 
 # Signature forgery
-bash tools/security/attack.sh signature_forgery
+bash tools/demo/security/attack.sh signature_forgery
 ```
 
 ### Security Hardening
 ```bash
 # Check system security
-bash tools/user/restore.sh --status
+bash tools/demo/user/restore.sh --status
 
 # Update security files
-bash tools/user/restore.sh --regen
+bash tools/demo/user/restore.sh --regen
 ```
 
 ---

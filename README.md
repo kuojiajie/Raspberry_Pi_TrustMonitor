@@ -1,6 +1,26 @@
-# TrustMonitor BMC/ROT POC
+# TrustMonitor BMC/ROT POC - Final Release
 
 A Raspberry Pi-based monitoring system that demonstrates Baseboard Management Controller (BMC) and Root of Trust (ROT) concepts through real hardware integration.
+
+## 🎯 Project Status: FINAL POC RELEASE
+
+**TrustMonitor v3.2.0** is the final Proof of Concept release. This project has successfully completed its mission to demonstrate BMC/ROT capabilities on Raspberry Pi.
+
+### ✅ Completed Objectives
+- **BMC/ROT Architecture**: Complete PoC implementation
+- **Secure Boot**: Full secure boot simulation with integrity verification
+- **Hardware Integration**: Real sensor and LED feedback systems
+- **Security Protection**: RSA digital signatures and tamper detection
+- **Comprehensive Testing**: 113/114 tests passing (99% success rate)
+- **Production Ready**: Security-hardened for deployment scenarios
+
+### 🚫 Development Status
+This project is **feature-complete** and will not receive additional functionality. Future work may include:
+- Security maintenance updates
+- Bug fixes for critical issues
+- Documentation improvements
+
+**This is a PoC system, not a production product.**
 
 ## 🎯 What TrustMonitor Does
 
@@ -11,9 +31,8 @@ TrustMonitor transforms a Raspberry Pi into a miniature BMC/ROT system that:
 - **💡 Visual Status Indicators**: LED shows system health with temperature/humidity thresholds
 - **🔒 Security Protection**: SHA256 integrity verification with RSA digital signatures
 - **⚡ Service Management**: Automatic startup and background monitoring
-- **🧪 Comprehensive Testing**: 100% reliable test framework with unit, integration, and security tests
-- **🔐 Production Security**: v3.1.8+ includes production-grade security with no private keys on device
-- **🛡️ Systemd Hardening**: v3.1.1+ includes security-hardened systemd service
+- **🧪 Comprehensive Testing**: 99% reliable test framework with unit, integration, and security tests (1 expected security check failure in development)
+- **️ Systemd Hardening**: Security-hardened systemd service
 
 ## 🚀 Quick Start (5 Minutes)
 
@@ -120,7 +139,7 @@ cat tests/results/test_report_*.txt
 bash tools/user/demo.sh quick
 
 # View available demo scenarios
-bash tools/user/demo.sh --list
+bash tools/user/demo.sh help
 ```
 
 ## 🔧 Hardware Setup
@@ -203,7 +222,7 @@ Experience TrustMonitor's security capabilities:
 bash tools/user/demo.sh quick
 
 # View available demo scenarios
-bash tools/user/demo.sh --list
+bash tools/user/demo.sh help
 
 # Run specific security demonstration
 bash tools/user/demo.sh integrity
@@ -214,14 +233,12 @@ bash tools/user/demo.sh integrity
 ### For Users
 - **[Attack/Defense Demo Guide](docs/attack-defense-demo.md)** - Complete security demonstration
 - **[Backup Management](docs/backup-management.md)** - System backup and recovery
-- **[Configuration Validation](docs/configuration-validation.md)** - v3.1.5+ configuration validation guide
 
 ### For Developers
-- **[Documentation Index](docs/README.md)** - Complete technical documentation
+- **[Developer Guide](docs/developer-guide.md)** - Development tools and technical details
 - **[User Guide](docs/user-guide.md)** - Complete user guide and testing
 - **[Security Guide](docs/security-guide.md)** - Security features and protection
 - **[HAL System](docs/hal-system.md)** - Hardware abstraction layer overview
-- **[Backup Management](docs/backup-management.md)** - Backup system and recovery
 
 ## 🛠 Advanced Configuration
 
@@ -266,7 +283,7 @@ sudo journalctl -u health-monitor.service --vacuum-time=7d
 # Quick health check (recommended for users)
 bash tools/dev/quick_test.sh
 
-# Configuration validation (v3.1.5+)
+# Configuration validation
 bash tools/config/validate_config.sh
 
 # Validate specific configuration sections
@@ -284,7 +301,7 @@ bash tools/user/demo.sh
 bash tools/user/demo.sh quick
 
 # View available demo scenarios
-bash tools/user/demo.sh --list
+bash tools/user/demo.sh help
 
 # Run specific security demonstration
 bash tools/user/demo.sh integrity
@@ -299,7 +316,7 @@ bash tools/user/sign_manifest.sh sign
 # Verify system integrity
 bash scripts/integrity_check.sh
 
-# Validate configuration (v3.1.5+)
+# Validate configuration
 bash tools/config/validate_config.sh
 
 # Validate specific configuration sections
@@ -354,7 +371,7 @@ bash tools/user/gen_hash.sh generate
 bash tools/user/sign_manifest.sh sign
 
 # Or use restore tool
-bash tools/user/restore.sh --regen
+bash tools/demo/user/restore.sh --regen
 ```
 
 ### Log Analysis

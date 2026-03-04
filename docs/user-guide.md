@@ -18,13 +18,13 @@ bash tools/user/demo.sh
 ### Security Testing
 ```bash
 # View available attack scenarios
-bash tools/security/attack.sh --list
+bash tools/demo/security/attack.sh --list
 
 # Run specific attack simulation
-bash tools/security/attack.sh malicious_code
+bash tools/demo/security/attack.sh malicious_code
 
 # Restore after attack
-bash tools/user/restore.sh --auto
+bash tools/demo/user/restore.sh --auto
 ```
 
 ## 📚 Additional Information
@@ -77,8 +77,8 @@ bash tools/dev/quick_test.sh
 bash tools/user/demo.sh
 
 # Security attack simulation
-bash tools/security/attack.sh --list
-bash tools/security/attack.sh malicious_code
+bash tools/demo/security/attack.sh --list
+bash tools/demo/security/attack.sh malicious_code
 ```
 
 ## 🔧 System Maintenance
@@ -96,10 +96,10 @@ bash scripts/integrity_check.sh
 ### After Security Incidents
 ```bash
 # Automatic recovery from backup
-bash tools/user/restore.sh --auto
+bash tools/demo/user/restore.sh --auto
 
 # Or regenerate security files only
-bash tools/user/restore.sh --regen
+bash tools/demo/user/restore.sh --regen
 ```
 
 ## 📚 Additional Information
@@ -110,4 +110,4 @@ For complete tools documentation, see:
 
 ---
 
-*This testing guide reflects the simplified tools structure in v2.2.7+*
+*This testing guide reflects the simplified tools structure*

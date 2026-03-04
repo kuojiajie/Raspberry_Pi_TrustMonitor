@@ -26,7 +26,7 @@ Demonstrate TrustMonitor's security mechanisms through realistic attack scenario
 ### Scenario 1: Malicious Code Injection
 **Attack**: Backdoor insertion in monitoring script
 ```bash
-bash tools/security/attack.sh malicious_code
+bash tools/demo/security/attack.sh malicious_code
 ```
 **What happens**: Injects backdoor code, activates at minute 42, creates evidence file
 **Detection**: SHA256 hash mismatch detected immediately
@@ -35,7 +35,7 @@ bash tools/security/attack.sh malicious_code
 ### Scenario 2: Configuration Tampering
 **Attack**: Alter system thresholds to cause false alarms
 ```bash
-bash tools/security/attack.sh config_tamper
+bash tools/demo/security/attack.sh config_tamper
 ```
 **What happens**: Lowers CPU error threshold, causes false alarms
 **Detection**: File modification detected by integrity check
@@ -44,7 +44,7 @@ bash tools/security/attack.sh config_tamper
 ### Scenario 3: Core Module Corruption
 **Attack**: Modify main health monitor behavior
 ```bash
-bash tools/security/attack.sh core_module
+bash tools/demo/security/attack.sh core_module
 ```
 **What happens**: Corrupts startup message, shows "System compromised"
 **Detection**: Immediate integrity verification failure
@@ -53,7 +53,7 @@ bash tools/security/attack.sh core_module
 ### Scenario 4: Signature Forgery
 **Attack**: Attempt to create fake digital signature
 ```bash
-bash tools/security/attack.sh signature_forgery
+bash tools/demo/security/attack.sh signature_forgery
 ```
 **What happens**: Creates fake signature file, attempts to bypass verification
 **Detection**: RSA signature verification fails
@@ -62,7 +62,7 @@ bash tools/security/attack.sh signature_forgery
 ### Scenario 5: Combined Attack
 **Attack**: Multiple simultaneous attack vectors
 ```bash
-bash tools/security/attack.sh multiple
+bash tools/demo/security/attack.sh multiple
 ```
 **What happens**: Combines scenarios 1, 2, and 3
 **Detection**: Multiple integrity failures detected
@@ -72,39 +72,54 @@ bash tools/security/attack.sh multiple
 
 ### Automatic Recovery
 ```bash
-bash tools/user/restore.sh --auto
+bash tools/demo/user/restore.sh --auto
 ```
 **What happens**: Cleans attack artifacts, restores from backup, verifies integrity
 
 ### Manual Recovery
 ```bash
 # List available backups
-bash tools/user/restore.sh --list
+bash tools/demo/user/restore.sh --list
 
 # Restore from specific backup
-bash tools/user/restore.sh --backup [backup_id]
+bash tools/demo/user/restore.sh --backup [backup_id]
 
 # Regenerate security files only
-bash tools/user/restore.sh --regen
+bash tools/demo/user/restore.sh --regen
+
+# Clean attack artifacts only
+bash tools/demo/user/restore.sh --clean
+
+# Show current system status
+bash tools/demo/user/restore.sh --status
 ```
 
 ## 📊 Complete Demo Flow
 
 ```bash
 # 1. Check initial status
-bash tools/security/attack.sh --status
+bash tools/demo/security/attack.sh --status
 
 # 2. Launch attack
-bash tools/security/attack.sh malicious_code
+bash tools/demo/security/attack.sh malicious_code
 
 # 3. Verify detection
 bash scripts/integrity_check.sh
 
-# 4. Recover system
-bash tools/user/restore.sh --auto
+# 4. Restore system
+bash tools/demo/user/restore.sh --auto
 
 # 5. Verify recovery
 bash scripts/integrity_check.sh
+
+# Alternative: Force attack without integrity check (demo only)
+bash tools/demo/security/attack.sh --force malicious_code
+
+# Alternative: Verify system integrity before attack
+bash tools/demo/security/attack.sh --verify
+
+# Alternative: List all attack scenarios
+bash tools/demo/security/attack.sh --list
 ```
 
 ## 📈 LED Status Indicators
@@ -122,7 +137,7 @@ bash scripts/integrity_check.sh
 ```bash
 sudo systemctl status health-monitor.service
 sudo journalctl -u health-monitor.service --since "5 minutes ago"
-bash tools/user/restore.sh --auto
+bash tools/demo/user/restore.sh --auto
 ```
 
 ### Permission Errors
@@ -130,7 +145,7 @@ bash tools/user/restore.sh --auto
 chmod +x daemon/health_monitor.sh
 chmod +x scripts/*.sh
 chmod +x tools/user/*.sh
-chmod +x tools/security/*.sh
+chmod +x tools/demo/security/*.sh
 ```
 
 ## 📚 Additional Information

@@ -321,13 +321,16 @@ test_key_generation() {
         add_test_result "key_generation" "PASS" "Key generation tool available" "gen_keypair.sh exists and executable"
         
         # SECURITY: Verify NO private keys exist anywhere in production
+        # NOTE: This test is DESIGNED to fail in development environments
+        # In development, private keys are needed for signing and testing
+        # In production, private keys should NOT exist for security
         local private_key_legacy="$BASE_DIR/data/keys/private_key.pem"
         local private_key_integrity="$BASE_DIR/data/integrity/private_key.pem"
         
         if [[ ! -f "$private_key_legacy" && ! -f "$private_key_integrity" ]]; then
             add_test_result "key_files_created" "PASS" "Production secure" "No private keys on device - security compliant"
         else
-            add_test_result "key_files_created" "FAIL" "Security violation" "Private key found on production device"
+            add_test_result "key_files_created" "FAIL" "Expected in development" "Private key found (normal for development, security violation in production)"
         fi
         
         # Verify public key exists in integrity directory

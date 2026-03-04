@@ -299,7 +299,7 @@ cleanup_hardware_resources() {
     # ====================================================================
     # LED Cleanup - HAL vs Legacy System Selection
     # ====================================================================
-    # Priority: HAL (v2.2.6+) → Legacy → No cleanup
+    # Priority: HAL → Legacy → No cleanup
     # 
     # HAL System: Modern hardware abstraction layer with unified interfaces
     # Legacy System: Original hardware controllers (marked DEPRECATED)
@@ -483,7 +483,7 @@ while true; do
     # ====================================================================
     # Sensor Monitoring - HAL vs Legacy System Selection
     # ====================================================================
-    # Priority: HAL (v2.2.6+) → Legacy → Skip sensor monitoring
+    # Priority: HAL → Legacy → Skip sensor monitoring
     #
     # HAL System: Modern hardware abstraction with better error handling
     # Legacy System: Original sensor implementation (marked DEPRECATED)

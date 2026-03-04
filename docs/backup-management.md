@@ -23,19 +23,19 @@ TrustMonitor automatically creates backups to protect your system and provide re
 ### Automatic Recovery
 ```bash
 # Restore from latest backup
-bash tools/user/restore.sh --auto
+bash tools/demo/user/restore.sh --auto
 
 # Regenerate security files only
-bash tools/user/restore.sh --regen
+bash tools/demo/user/restore.sh --regen
 ```
 
 ### Manual Recovery
 ```bash
 # List available backups
-bash tools/user/restore.sh --list
+bash tools/demo/user/restore.sh --list
 
 # Restore from specific backup
-bash tools/user/restore.sh --backup 20260301_233015
+bash tools/demo/user/restore.sh --backup 20260301_233015
 ```
 
 ## 📊 Backup Retention

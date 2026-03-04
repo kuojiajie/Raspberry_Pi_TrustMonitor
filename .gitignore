@@ -2,7 +2,7 @@
 # TrustMonitor .gitignore
 # ==============================================================================
 # Clean, organized ignore patterns for TrustMonitor project
-# Updated for v3.1.8 Production Security Architecture
+# Updated for Production Security Architecture
 
 # Configuration files (user-specific)
 config/health-monitor.env
@@ -28,12 +28,12 @@ data/integrity/manifest.sha256
 data/integrity/manifest.sha256.sig
 !data/integrity/public_key.pem
 
-# Configuration validation reports (v3.1.5+)
+# Configuration validation reports
 config/validation_report_*.txt
 config/validation_report_*.json
 config/validation_report_*.html
 
-# Test framework results and logs (v3.1.7+)
+# Test framework results and logs
 tests/results/
 tests/logs/
 tests/tmp/
@@ -44,7 +44,6 @@ tests/test_report_*.txt
 
 # Test runner scripts (temporary files)
 test_runner_stable*.sh
-test_runner_auto*.sh
 test_runner_manual*.sh
 
 # Error handling logs (generated during testing)
@@ -114,5 +113,5 @@ wheels/
 systemd/health-monitor.service
 systemd/health-monitor.service.*
 
-# Legacy directories (v3.1.8 migration)
+# Legacy directories (migration)
 data/keys/backup_*/
