@@ -31,14 +31,16 @@ NC='\033[0m' # No Color
 init_test_results() {
     TEST_RESULTS_FILE="$1"
     
-    # Initialize test results in JSON format
-    cat > "$TEST_RESULTS_FILE" << EOF
+    # Initialize test results in JSON format (append mode)
+    if [[ ! -f "$TEST_RESULTS_FILE" ]]; then
+        cat > "$TEST_RESULTS_FILE" << EOF
 {
   "test_type": "integration",
   "test_suite": "hardware_integration",
   "tests": []
 }
 EOF
+    fi
 }
 
 # Add test result
@@ -119,16 +121,16 @@ test_hal_core() {
         if python3 -c "
 import sys
 sys.path.append('$BASE_DIR/hardware')
-from hal_core import HALCore
+from hal_core import HALManager
 try:
-    core = HALCore()
+    manager = HALManager()
     print('SUCCESS')
 except Exception as e:
     print('FAILED')
 " 2>/dev/null | grep -q "SUCCESS"; then
-            add_test_result "hal_core_functionality" "PASS" "HAL core functionality works" "HALCore class instantiates successfully"
+            add_test_result "hal_core_functionality" "PASS" "HAL core functionality works" "HALManager class instantiates successfully"
         else
-            add_test_result "hal_core_functionality" "FAIL" "HAL core functionality failed" "HALCore class instantiation failed"
+            add_test_result "hal_core_functionality" "FAIL" "HAL core functionality failed" "HALManager class instantiation failed"
         fi
     else
         add_test_result "hal_core_import" "SKIP" "HAL core module not available" "Cannot test HAL core import"
@@ -188,16 +190,16 @@ test_hal_sensors() {
         if python3 -c "
 import sys
 sys.path.append('$BASE_DIR/hardware')
-from hal_sensors import HALSensors
+from hal_sensors import SensorManager
 try:
-    sensors = HALSensors()
+    sensors = SensorManager()
     print('SUCCESS')
 except Exception as e:
     print('FAILED')
 " 2>/dev/null | grep -q "SUCCESS"; then
-            add_test_result "hal_sensors_functionality" "PASS" "HAL sensors functionality works" "HALSensors class instantiates successfully"
+            add_test_result "hal_sensors_functionality" "PASS" "HAL sensors functionality works" "SensorManager class instantiates successfully"
         else
-            add_test_result "hal_sensors_functionality" "FAIL" "HAL sensors functionality failed" "HALSensors class instantiation failed"
+            add_test_result "hal_sensors_functionality" "FAIL" "HAL sensors functionality failed" "SensorManager class instantiation failed"
         fi
     else
         add_test_result "hal_sensors_import" "SKIP" "HAL sensors module not available" "Cannot test HAL sensors import"

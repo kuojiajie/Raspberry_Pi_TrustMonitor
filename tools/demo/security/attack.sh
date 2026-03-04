@@ -7,7 +7,7 @@ set -euo pipefail
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"  # Go up two levels to reach project root
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"  # Go up three levels to reach project root
 BACKUP_DIR="$PROJECT_ROOT/backup/attack_demo_$(date +%Y%m%d_%H%M%S)"
 
 # Attack scenarios registry
@@ -63,7 +63,7 @@ show_usage() {
 }
 
 # Load backup manager
-source "$SCRIPT_DIR/../../lib/backup_manager.sh"
+source "$SCRIPT_DIR/../../../lib/backup_manager.sh"
 
 # Create backup directory using unified backup system
 create_backup() {

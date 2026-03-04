@@ -2,7 +2,7 @@
 # TrustMonitor .gitignore
 # ==============================================================================
 # Clean, organized ignore patterns for TrustMonitor project
-# Updated for v3.1.5 Configuration Validation
+# Updated for v3.1.7 Testing Framework Refactor
 
 # Configuration files (user-specific)
 config/health-monitor.env
@@ -21,11 +21,14 @@ config/validation_report_*.txt
 config/validation_report_*.json
 config/validation_report_*.html
 
-# Test framework results and logs (v3.1.6+)
+# Test framework results and logs (v3.1.7+)
 tests/results/
 tests/logs/
+tests/tmp/
 test_logs/
 test_results/
+tests/test_results_*.json
+tests/test_report_*.txt
 # Test runner scripts (temporary files)
 test_runner_stable*.sh
 test_runner_auto*.sh
@@ -46,12 +49,6 @@ data/keys/
 # Backup directories (generated)
 backup/
 !backup/.gitkeep
-
-# Attack artifacts (generated during testing)
-attack_proof.txt
-backdoor_*
-pwned_*
-/tmp/attack_*
 
 # Python cache
 __pycache__/

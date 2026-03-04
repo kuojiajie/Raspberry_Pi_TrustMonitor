@@ -65,13 +65,13 @@ demo_quick() {
     
     # Step 1: Show initial status
     log_header "Step 1: Initial System Status"
-    bash "$SCRIPT_DIR/../security/attack.sh" --status
+    bash "$SCRIPT_DIR/../demo/security/attack.sh" --status
     echo ""
     
     # Step 2: Launch attack
     log_header "Step 2: Launch Attack (Malicious Code Injection)"
     log_warning "Injecting backdoor into cpu_monitor.sh..."
-    bash "$SCRIPT_DIR/../security/attack.sh" malicious_code
+    bash "$SCRIPT_DIR/../demo/security/attack.sh" malicious_code
     echo ""
     
     # Step 3: Verify detection
@@ -88,7 +88,7 @@ demo_quick() {
     # Step 4: System recovery
     log_header "Step 4: System Recovery"
     log_info "Restoring system from backup..."
-    bash "$SCRIPT_DIR/restore.sh" --auto
+    bash "$SCRIPT_DIR/../demo/user/restore.sh" --auto
     echo ""
     
     # Step 5: Final verification
@@ -118,7 +118,7 @@ demo_full() {
     
     # Step 1: Initial status
     log_header "Step 1: Initial System Status"
-    bash "$SCRIPT_DIR/attack.sh" --status
+    bash "$SCRIPT_DIR/../demo/security/attack.sh" --status
     echo ""
     
     # Step 2: Test each scenario
@@ -129,7 +129,7 @@ demo_full() {
         log_warning "Testing $scenario_name scenario..."
         
         # Launch attack
-        bash "$SCRIPT_DIR/attack.sh" "$scenario_name" >/dev/null 2>&1
+        bash "$SCRIPT_DIR/../demo/security/attack.sh" "$scenario_name" >/dev/null 2>&1
         
         # Verify detection
         if bash "$PROJECT_ROOT/scripts/integrity_check.sh" >/dev/null 2>&1; then
@@ -140,7 +140,7 @@ demo_full() {
         
         # Recovery
         log_info "Recovering system..."
-        bash "$SCRIPT_DIR/restore.sh" --auto >/dev/null 2>&1
+        bash "$SCRIPT_DIR/../demo/user/restore.sh" --auto >/dev/null 2>&1
         
         # Verify recovery
         if bash "$PROJECT_ROOT/scripts/integrity_check.sh" >/dev/null 2>&1; then
@@ -157,7 +157,7 @@ demo_full() {
     log_header "Step 3: Combined Attack Scenario"
     log_warning "Testing multiple simultaneous attacks..."
     
-    bash "$SCRIPT_DIR/attack.sh" multiple >/dev/null 2>&1
+    bash "$SCRIPT_DIR/../demo/security/attack.sh" multiple >/dev/null 2>&1
     
     if bash "$PROJECT_ROOT/scripts/integrity_check.sh" >/dev/null 2>&1; then
         log_error "Security check passed - combined attack failed!"
@@ -166,7 +166,7 @@ demo_full() {
     fi
     
     # Recovery
-    bash "$SCRIPT_DIR/restore.sh" --auto >/dev/null 2>&1
+    bash "$SCRIPT_DIR/../demo/user/restore.sh" --auto >/dev/null 2>&1
     
     if bash "$PROJECT_ROOT/scripts/integrity_check.sh" >/dev/null 2>&1; then
         log_success "System fully recovered from combined attack!"
@@ -218,7 +218,7 @@ demo_service() {
     # Step 2: Launch attack while service running
     log_header "Step 2: Attack Running Service"
     log_warning "Injecting malicious code while service is running..."
-    bash "$SCRIPT_DIR/attack.sh" malicious_code >/dev/null 2>&1
+    bash "$SCRIPT_DIR/../demo/security/attack.sh" malicious_code >/dev/null 2>&1
     
     # Step 3: Check service response
     log_header "Step 3: Service Security Response"
@@ -256,7 +256,7 @@ demo_service() {
     log_header "Step 6: System Recovery"
     log_info "Restoring system and restarting service..."
     
-    bash "$SCRIPT_DIR/restore.sh" --auto >/dev/null 2>&1
+    bash "$SCRIPT_DIR/../demo/user/restore.sh" --auto >/dev/null 2>&1
     
     if sudo systemctl restart health-monitor.service; then
         sleep 3
@@ -295,19 +295,19 @@ demo_manual() {
         
         case "$choice" in
             1)
-                bash "$SCRIPT_DIR/attack.sh" --status
+                bash "$SCRIPT_DIR/../demo/security/attack.sh" --status
                 echo ""
                 ;;
             2)
-                bash "$SCRIPT_DIR/attack.sh" --list
+                bash "$SCRIPT_DIR/../demo/security/attack.sh" --list
                 echo ""
                 ;;
             3)
                 echo "Available scenarios:"
-                bash "$SCRIPT_DIR/attack.sh" --list
+                bash "$SCRIPT_DIR/../demo/security/attack.sh" --list
                 read -p "Enter scenario name: " scenario
                 if [[ -n "$scenario" ]]; then
-                    bash "$SCRIPT_DIR/attack.sh" "$scenario"
+                    bash "$SCRIPT_DIR/../demo/security/attack.sh" "$scenario"
                 fi
                 echo ""
                 ;;
@@ -316,7 +316,7 @@ demo_manual() {
                 echo ""
                 ;;
             5)
-                bash "$SCRIPT_DIR/restore.sh" --auto
+                bash "$SCRIPT_DIR/../demo/user/restore.sh" --auto
                 echo ""
                 ;;
             6)

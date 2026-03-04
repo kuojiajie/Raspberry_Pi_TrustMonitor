@@ -11,7 +11,7 @@ TrustMonitor transforms a Raspberry Pi into a miniature BMC/ROT system that:
 - **💡 Visual Status Indicators**: LED shows system health with temperature/humidity thresholds
 - **🔒 Security Protection**: SHA256 integrity verification with RSA digital signatures
 - **⚡ Service Management**: Automatic startup and background monitoring
-- **🛡 Attack Defense**: Security attack simulation and automatic recovery
+- **🧪 Comprehensive Testing**: 100% reliable test framework with unit, integration, and security tests
 - **🔐 Systemd Hardening**: v3.1.1+ includes security-hardened systemd service
 
 ## 🚀 Quick Start (5 Minutes)
@@ -97,10 +97,7 @@ bash scripts/integrity_check.sh
 
 ### System Testing
 ```bash
-# Run automated stable tests (100% reliable)
-bash tests/test_runner_auto.sh
-
-# Run complete test suite
+# Run complete test suite (100% reliable)
 bash tests/test_runner.sh
 
 # Run specific test types
@@ -113,14 +110,13 @@ ls -la tests/results/
 cat tests/results/test_report_*.txt
 ```
 
-### System Recovery
+### Security Demo
 ```bash
-# Automatic recovery from backup
-bash tools/user/restore.sh --auto
+# Run security demonstration
+bash tools/user/demo.sh quick
 
-# Manual recovery
-bash tools/user/restore.sh --list
-bash tools/user/restore.sh --restore [backup_id]
+# View available demo scenarios
+bash tools/user/demo.sh --list
 ```
 
 ## 🔧 Hardware Setup
@@ -202,11 +198,11 @@ Experience TrustMonitor's security capabilities:
 # Run complete security demonstration
 bash tools/user/demo.sh quick
 
-# View available attack scenarios
-bash tools/security/attack.sh --list
+# View available demo scenarios
+bash tools/user/demo.sh --list
 
-# Run specific attack simulation
-bash tools/security/attack.sh malicious_code
+# Run specific security demonstration
+bash tools/user/demo.sh integrity
 ```
 
 ## 📚 Documentation
@@ -280,14 +276,14 @@ bash tools/user/demo.sh
 
 ### Security Testing
 ```bash
-# View available attack scenarios
-bash tools/security/attack.sh --list
+# Run security demonstration
+bash tools/user/demo.sh quick
 
-# Run specific attack simulation
-bash tools/security/attack.sh malicious_code
+# View available demo scenarios
+bash tools/user/demo.sh --list
 
-# Restore after attack
-bash tools/user/restore.sh --auto
+# Run specific security demonstration
+bash tools/user/demo.sh integrity
 ```
 
 ### System Maintenance

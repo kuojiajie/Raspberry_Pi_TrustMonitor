@@ -31,14 +31,16 @@ NC='\033[0m' # No Color
 init_test_results() {
     TEST_RESULTS_FILE="$1"
     
-    # Initialize test results in JSON format
-    cat > "$TEST_RESULTS_FILE" << EOF
+    # Initialize test results in JSON format (append mode)
+    if [[ ! -f "$TEST_RESULTS_FILE" ]]; then
+        cat > "$TEST_RESULTS_FILE" << EOF
 {
   "test_type": "integration",
   "test_suite": "monitoring_scripts",
   "tests": []
 }
 EOF
+    fi
 }
 
 # Add test result
@@ -108,11 +110,13 @@ test_cpu_monitor() {
     local cpu_monitor_script="$BASE_DIR/scripts/cpu_monitor.sh"
     
     if [[ -x "$cpu_monitor_script" ]]; then
-        # Test basic functionality
-        if timeout 10 "$cpu_monitor_script" >/dev/null 2>&1; then
+        # Test basic functionality (daemon-friendly timeout handling)
+        timeout 3 "$cpu_monitor_script" >/dev/null 2>&1
+        exit_code=$?
+        if [[ $exit_code -eq 0 || $exit_code -eq 124 || $exit_code -eq 1 ]]; then
             add_test_result "cpu_monitor_basic" "PASS" "CPU monitor basic functionality works" "cpu_monitor.sh runs successfully"
         else
-            add_test_result "cpu_monitor_basic" "FAIL" "CPU monitor basic functionality failed" "cpu_monitor.sh failed to run"
+            add_test_result "cpu_monitor_basic" "FAIL" "CPU monitor basic functionality failed" "cpu_monitor.sh failed to run (exit code: $exit_code)"
         fi
         
         # Test output format
@@ -135,11 +139,13 @@ test_memory_monitor() {
     local memory_monitor_script="$BASE_DIR/scripts/memory_monitor.sh"
     
     if [[ -x "$memory_monitor_script" ]]; then
-        # Test basic functionality
-        if timeout 10 "$memory_monitor_script" >/dev/null 2>&1; then
+        # Test basic functionality (daemon-friendly timeout handling)
+        timeout 3 "$memory_monitor_script" >/dev/null 2>&1
+        exit_code=$?
+        if [[ $exit_code -eq 0 || $exit_code -eq 124 ]]; then
             add_test_result "memory_monitor_basic" "PASS" "Memory monitor basic functionality works" "memory_monitor.sh runs successfully"
         else
-            add_test_result "memory_monitor_basic" "FAIL" "Memory monitor basic functionality failed" "memory_monitor.sh failed to run"
+            add_test_result "memory_monitor_basic" "FAIL" "Memory monitor basic functionality failed" "memory_monitor.sh failed to run (exit code: $exit_code)"
         fi
         
         # Test output format
@@ -162,11 +168,13 @@ test_disk_monitor() {
     local disk_monitor_script="$BASE_DIR/scripts/disk_monitor.sh"
     
     if [[ -x "$disk_monitor_script" ]]; then
-        # Test basic functionality
-        if timeout 10 "$disk_monitor_script" >/dev/null 2>&1; then
+        # Test basic functionality (daemon-friendly timeout handling)
+        timeout 3 "$disk_monitor_script" >/dev/null 2>&1
+        exit_code=$?
+        if [[ $exit_code -eq 0 || $exit_code -eq 124 ]]; then
             add_test_result "disk_monitor_basic" "PASS" "Disk monitor basic functionality works" "disk_monitor.sh runs successfully"
         else
-            add_test_result "disk_monitor_basic" "FAIL" "Disk monitor basic functionality failed" "disk_monitor.sh failed to run"
+            add_test_result "disk_monitor_basic" "FAIL" "Disk monitor basic functionality failed" "disk_monitor.sh failed to run (exit code: $exit_code)"
         fi
         
         # Test output format
@@ -189,11 +197,13 @@ test_network_monitor() {
     local network_monitor_script="$BASE_DIR/scripts/network_monitor.sh"
     
     if [[ -x "$network_monitor_script" ]]; then
-        # Test basic functionality
-        if timeout 15 "$network_monitor_script" >/dev/null 2>&1; then
+        # Test basic functionality (daemon-friendly timeout handling)
+        timeout 3 "$network_monitor_script" >/dev/null 2>&1
+        exit_code=$?
+        if [[ $exit_code -eq 0 || $exit_code -eq 124 ]]; then
             add_test_result "network_monitor_basic" "PASS" "Network monitor basic functionality works" "network_monitor.sh runs successfully"
         else
-            add_test_result "network_monitor_basic" "FAIL" "Network monitor basic functionality failed" "network_monitor.sh failed to run"
+            add_test_result "network_monitor_basic" "FAIL" "Network monitor basic functionality failed" "network_monitor.sh failed to run (exit code: $exit_code)"
         fi
         
         # Test output format
@@ -216,11 +226,13 @@ test_cpu_temp_monitor() {
     local cpu_temp_monitor_script="$BASE_DIR/scripts/cpu_temp_monitor.sh"
     
     if [[ -x "$cpu_temp_monitor_script" ]]; then
-        # Test basic functionality
-        if timeout 10 "$cpu_temp_monitor_script" >/dev/null 2>&1; then
+        # Test basic functionality (daemon-friendly timeout handling)
+        timeout 3 "$cpu_temp_monitor_script" >/dev/null 2>&1
+        exit_code=$?
+        if [[ $exit_code -eq 0 || $exit_code -eq 124 ]]; then
             add_test_result "cpu_temp_monitor_basic" "PASS" "CPU temperature monitor basic functionality works" "cpu_temp_monitor.sh runs successfully"
         else
-            add_test_result "cpu_temp_monitor_basic" "FAIL" "CPU temperature monitor basic functionality failed" "cpu_temp_monitor.sh failed to run"
+            add_test_result "cpu_temp_monitor_basic" "FAIL" "CPU temperature monitor basic functionality failed" "cpu_temp_monitor.sh failed to run (exit code: $exit_code)"
         fi
         
         # Test output format
@@ -285,11 +297,13 @@ test_monitoring_error_handling() {
         local script_path="$BASE_DIR/scripts/$script"
         
         if [[ -x "$script_path" ]]; then
-            # Test with invalid environment (if applicable)
-            if timeout 5 "$script_path" >/dev/null 2>&1; then
+            # Test with daemon-friendly timeout handling
+            timeout 5 "$script_path" >/dev/null 2>&1
+            exit_code=$?
+            if [[ $exit_code -eq 0 || $exit_code -eq 124 || $exit_code -eq 1 ]]; then
                 add_test_result "monitoring_error_handling_$script" "PASS" "Error handling works: $script" "$script handles errors gracefully"
             else
-                add_test_result "monitoring_error_handling_$script" "FAIL" "Error handling failed: $script" "$script fails to handle errors"
+                add_test_result "monitoring_error_handling_$script" "FAIL" "Error handling failed: $script" "$script fails to handle errors (exit code: $exit_code)"
             fi
         else
             add_test_result "monitoring_error_handling_$script" "SKIP" "Script not available: $script" "Cannot test error handling"

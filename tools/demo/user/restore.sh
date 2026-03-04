@@ -7,7 +7,7 @@ set -euo pipefail
 
 # Load TrustMonitor initialization system
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../lib/trustmon_init.sh"
+source "$SCRIPT_DIR/../../../lib/trustmon_init.sh"
 
 # Initialize this script
 init_trustmon_script "restore.sh"
