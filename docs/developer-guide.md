@@ -1,160 +1,160 @@
 # Developer Guide
 
-## 🛠 開發者指南
+## 🛠 Developer Guide
 
-本文檔提供開發者需要的技術細節和工具使用說明。
+This document provides technical details and tool usage instructions for developers.
 
-## 🔧 工具概覽
+## 🔧 Tools Overview
 
-TrustMonitor 提供完整的工具集，分為三個主要類別：
+TrustMonitor provides a complete toolset, divided into three main categories:
 
-### `tools/user/` - 用戶工具
-基本系統管理和安全工具：
-- **`gen_hash.sh`** - 生成 SHA256 雜湊清單用於完整性驗證
-- **`gen_keypair.sh`** - 生成 RSA 密鑰對用於數位簽章
-- **`sign_manifest.sh`** - 使用私鑰簽署雜湊清單
-- **`restore.sh`** - 在安全事件後從備份恢復系統
-- **`demo.sh`** - 完整系統演示和測試
+### `tools/user/` - User Tools
+Basic system management and security tools:
+- **`gen_hash.sh`** - Generate SHA256 hash list for integrity verification
+- **`gen_keypair.sh`** - Generate RSA key pairs for digital signatures
+- **`sign_manifest.sh`** - Sign hash list using private key
+- **`restore.sh`** - Restore system from backup after security events
+- **`demo.sh`** - Complete system demonstration and testing
 
-### `tools/demo/security/` - 安全工具
-- **`attack.sh`** - 攻擊/防禦演示腳本，用於測試安全機制
-- **攻擊類型**: malicious_code, config_tamper, core_module, signature_forgery
-- **使用方式**: `bash tools/demo/security/attack.sh --list` 查看可用攻擊
+### `tools/demo/security/` - Security Tools
+- **`attack.sh`** - Attack/defense demonstration script for testing security mechanisms
+- **Attack Types**: malicious_code, config_tamper, core_module, signature_forgery
+- **Usage**: `bash tools/demo/security/attack.sh --list` to view available attacks
 
-### `tools/dev/` - 開發工具
-- **`quick_test.sh`** - 基本系統健康檢查，用於快速驗證
+### `tools/dev/` - Development Tools
+- **`quick_test.sh`** - Basic system health check for quick verification
 
-## 🔧 配置驗證系統
+## 🔧 Configuration Validation System
 
-TrustMonitor 包含完整的配置驗證系統。
+TrustMonitor includes a comprehensive configuration validation system.
 
-### 使用方法
+### Usage
 ```bash
-# 驗證默認配置文件
+# Validate default configuration file
 bash tools/config/validate_config.sh
 
-# 驗證特定配置文件
+# Validate specific configuration file
 bash tools/config/validate_config.sh /path/to/custom.env
 
-# 驗證特定部分
+# Validate specific sections
 bash tools/config/validate_config.sh --system-only
 bash tools/config/validate_config.sh --paths-only
 bash tools/config/validate_config.sh --logging-only
 ```
 
-### 驗證選項
-- `--dht11-only` - 僅驗證 DHT11 針腳配置
-- `--temp-only` - 僅驗證溫度閾值
-- `--led-only` - 僅驗證 LED 針腳配置
-- `--network-only` - 僅驗證網絡配置
-- `--security-only` - 僅驗證安全配置
-- `--system-only` - 僅驗證系統閾值
-- `--paths-only` - 僅驗證路徑配置
-- `--logging-only` - 僅驗證日誌配置
-- `--watchdog-only` - 僅驗證看門狗配置
-- `--sel-only` - 僅驗證 SEL 配置
+### Validation Options
+- `--dht11-only` - Validate DHT11 sensor configuration only
+- `--temp-only` - Validate temperature thresholds only
+- `--led-only` - Validate LED pin configuration only
+- `--network-only` - Validate network configuration only
+- `--security-only` - Validate security configuration only
+- `--system-only` - Validate system thresholds only
+- `--paths-only` - Validate path configuration only
+- `--logging-only` - Validate logging configuration only
+- `--watchdog-only` - Validate watchdog configuration only
+- `--sel-only` - Validate SEL configuration only
 
-## 🧪 測試框架
+## 🧪 Testing Framework
 
-TrustMonitor 提供完整的測試覆蓋，確保系統可靠性。
+TrustMonitor provides comprehensive test coverage to ensure system reliability.
 
-### 運行測試
+### Running Tests
 ```bash
-# 運行完整測試套件
+# Run complete test suite
 bash tests/test_runner.sh
 
-# 運行特定測試類型
+# Run specific test types
 bash tests/test_runner.sh unit
 bash tests/test_runner.sh integration
 bash tests/test_runner.sh security
 ```
 
-### 測試覆蓋範圍
-- **單元測試**: 組件功能測試
-- **整合測試**: 組件協作測試
-- **安全測試**: 安全功能測試
-- **硬體測試**: 硬體整合測試
+### Test Coverage Scope
+- **Unit Tests**: Component functionality testing
+- **Integration Tests**: Component collaboration testing
+- **Security Tests**: Security feature testing
+- **Hardware Tests**: Hardware integration testing
 
-### 故障排除
+### Troubleshooting
 ```bash
-# 檢查系統完整性
+# Check system integrity
 bash scripts/integrity_check.sh
 
-# 如果 integrity check 失敗，更新 manifest
+# If integrity check fails, update manifest
 bash tools/user/gen_hash.sh generate
 bash tools/user/sign_manifest.sh sign
 
-# 重新運行測試
+# Re-run tests
 bash tests/test_runner.sh
 ```
 
-## 📊 返回碼系統
+## 📊 Return Code System
 
-使用標準化返回碼：
+Uses standardized return codes:
 ```bash
-RC_OK=0              # 操作成功
-RC_WARN=1            # 警告條件
-RC_ERROR=2           # 錯誤條件
-RC_INTEGRITY_FAILED=4    # 完整性驗證失敗
-RC_SIGNATURE_FAILED=5    # 簽章驗證失敗
+RC_OK=0              # Operation successful
+RC_WARN=1            # Warning condition
+RC_ERROR=2           # Error condition
+RC_INTEGRITY_FAILED=4    # Integrity verification failed
+RC_SIGNATURE_FAILED=5    # Signature verification failed
 ```
 
-## 🔌 HAL 系統
+## 🔌 HAL System
 
-硬體抽象層提供統一的硬體訪問介面。
+Hardware abstraction layer provides unified hardware access interface.
 
-### 關鍵檔案
-- `hardware/hal_core.py` - 核心 HAL 系統
-- `hardware/hal_interface.py` - 主要硬體介面
-- `hardware/hal_sensors.py` - 感測器管理
-- `hardware/hal_indicators.py` - LED 控制
+### Key Files
+- `hardware/hal_core.py` - Core HAL system
+- `hardware/hal_interface.py` - Main hardware interface
+- `hardware/hal_sensors.py` - Sensor management
+- `hardware/hal_indicators.py` - LED control
 
-### 配置
+### Configuration
 ```bash
-USE_HAL=true                         # 啟用 HAL (默認)
-DHT11_PIN=17                         # 感測器針腳 (GPIO 17)
-LED_RED_PIN=27                        # LED 針腳
+USE_HAL=true                         # Enable HAL (default)
+DHT11_PIN=17                         # Sensor pin (GPIO 17)
+LED_RED_PIN=27                        # LED pins
 LED_GREEN_PIN=22
 LED_BLUE_PIN=5
 ```
 
-## 🚀 快速工具參考
+## 🚀 Quick Tool Reference
 
-### 用戶工具
+### User Tools
 ```bash
-# 快速系統健康檢查
+# Quick system health check
 bash tools/dev/quick_test.sh
 
-# 完整系統演示
+# Complete system demonstration
 bash tools/user/demo.sh
 
-# 運行完整測試套件
+# Run complete test suite
 bash tests/test_runner.sh
 
-# 安全演示
+# Security demonstration
 bash tools/demo/security/attack.sh --list
 bash tools/demo/security/attack.sh malicious_code
 
-# 系統恢復
+# System recovery
 bash tools/demo/user/restore.sh --auto
 ```
 
-### 開發者工具
+### Developer Tools
 ```bash
-# 配置驗證
+# Configuration validation
 bash tools/config/validate_config.sh
 
-# 生成安全密鑰
+# Generate security keys
 bash tools/user/gen_keypair.sh generate
 
-# 更新系統完整性
+# Update system integrity
 bash tools/user/gen_hash.sh generate
 bash tools/user/sign_manifest.sh sign
 
-# 驗證系統完整性
+# Verify system integrity
 bash scripts/integrity_check.sh
 ```
 
 ---
 
-*此文檔適合開發者參考，用戶請參閱用戶指南和安全指南。*
+*This document is suitable for developer reference. Users should refer to the user guide and security guide.*

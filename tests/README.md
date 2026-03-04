@@ -1,196 +1,196 @@
 # TrustMonitor Test Framework
 
-## 🎯 測試框架概述
+## 🎯 Test Framework Overview
 
-TrustMonitor 測試框架提供完整的系統測試覆蓋，包括單元測試、整合測試和安全測試。
+TrustMonitor test framework provides complete system test coverage, including unit tests, integration tests, and security tests.
 
-## 📁 測試結構
+## 📁 Test Structure
 
 ```
 tests/
-├── README.md                    # 本文件
-├── test_runner.sh              # 主測試運行器 (完整測試)
-├── unit/                       # 單元測試
+├── README.md                    # This file
+├── test_runner.sh              # Main test runner (complete tests)
+├── unit/                       # Unit tests
 │   ├── test_logger.sh
 │   ├── test_return_codes.sh
 │   ├── test_config_validation.sh
 │   ├── test_backup_manager.sh
 │   └── test_path_manager.sh
-├── integration/                # 整合測試
+├── integration/                # Integration tests
 │   ├── test_boot_sequence.sh
 │   ├── test_integrity_check.sh
 │   ├── test_monitoring_scripts.sh
 │   └── test_hardware_integration.sh
-├── security/                   # 安全測試
+├── security/                   # Security tests
 │   ├── test_attack_detection.sh
 │   ├── test_recovery.sh
 │   └── test_integrity_verification.sh
-├── results/                    # 測試結果 (git忽略)
-└── logs/                       # 測試日誌 (git忽略)
+├── results/                    # Test results (git ignored)
+└── logs/                       # Test logs (git ignored)
 ```
 
-## 🚀 快速開始
+## 🚀 Quick Start
 
-### 🟢 穩定測試
+### 🟢 Stable Tests
 ```bash
-# 完整測試套件
+# Complete test suite
 bash tests/test_runner.sh
 
-特點:
-- 100% 穩定測試套件
-- 完整功能覆蓋
-- 自動化執行
-- CI/CD 就緒
+Features:
+- 100% stable test suite
+- Complete functionality coverage
+- Automated execution
+- CI/CD ready
 ```
 
-### 運行完整測試
+### Run Complete Tests
 ```bash
-# 運行所有測試
+# Run all tests
 bash tests/test_runner.sh
 
-# 運行特定類型測試
+# Run specific test types
 bash tests/test_runner.sh unit
 bash tests/test_runner.sh integration
 bash tests/test_runner.sh security
 ```
 
-### 運行單個測試
+### Run Individual Tests
 ```bash
-# 運行單元測試
+# Run unit tests
 bash tests/unit/test_logger.sh
 
-# 運行安全測試
+# Run security tests
 bash tests/security/test_integrity_verification.sh
 ```
 
-## 📊 測試類型
+## 📊 Test Types
 
-### 🟢 單元測試 (Unit Tests)
-測試單個組件的功能：
-- 日誌系統
-- 返回碼處理
-- 配置驗證
-- 備份管理器
-- 路徑管理器
+### 🟢 Unit Tests
+Test individual component functionality:
+- Logging system
+- Return code handling
+- Configuration validation
+- Backup manager
+- Path manager
 
-### 🟡 整合測試 (Integration Tests)
-測試組件間的協作：
-- 啟動序列
-- 完整性檢查
-- 監控腳本
-- 硬體整合
+### 🟡 Integration Tests
+Test component collaboration:
+- Boot sequence
+- Integrity check
+- Monitoring scripts
+- Hardware integration
 
-### 🔴 安全測試 (Security Tests)
-測試安全功能：
-- 攻擊檢測
-- 系統恢復
-- 完整性驗證
+### 🔴 Security Tests
+Test security features:
+- Attack detection
+- System recovery
+- Integrity verification
 
-## 📈 測試結果
+## 📈 Test Results
 
-### 當前狀況
+### Current Status
 ```bash
-總體測試: 114 個測試
-通過: 113 個 (99%)
-失敗: 1 個 (1%)
+Total tests: 114 tests
+Passed: 113 (99%)
+Failed: 1 (1%)
 
-各套件狀況:
-✅ test_integrity_verification.sh: 15/16 (94% - 1個預期失敗)
+Suite status:
+✅ test_integrity_verification.sh: 15/16 (94% - 1 expected failure)
 ✅ test_attack_detection.sh: 17/17 (100%)
 ✅ test_recovery.sh: 22/22 (100%)
-✅ 所有單元測試: 50/50 (100%)
-✅ 所有整合測試: 26/26 (100%)
+✅ All unit tests: 50/50 (100%)
+✅ All integration tests: 26/26 (100%)
 
-注意: key_files_created 測試設計為在開發環境中失敗，這是正常的安全檢查行為。
+Note: key_files_created test is designed to fail in development environments, this is normal security check behavior.
 ```
 
-### 穩定性分類
-- **🟢 完全穩定**: 所有測試套件 (99% 通過率 - 1個預期安全檢查失敗)
-- **🟡 基本穩定**: 無
-- **🔴 需要手動**: 無
+### Stability Classification
+- **🟢 Fully Stable**: All test suites (99% pass rate - 1 expected security check failure)
+- **🟡 Basically Stable**: None
+- **🔴 Manual Required**: None
 
-### 🔍 安全測試說明
-**key_files_created 測試**:
-- **開發環境**: 預期失敗 ✅ (需要私鑰進行簽名測試)
-- **生產環境**: 應該通過 ✅ (不應有私鑰)
-- **目的**: 確保生產設備安全，防止私鑰洩露
+### 🔍 Security Test Explanation
+**key_files_created test**:
+- **Development Environment**: Expected to fail ✅ (requires private keys for signing tests)
+- **Production Environment**: Should pass ✅ (should not have private keys)
+- **Purpose**: Ensure production device security, prevent private key leakage
 
-## 測試配置
+## Test Configuration
 
-### 環境要求
+### Environment Requirements
 - Bash 4.0+
 - Python 3.8+
-- 系統完整性 (manifest.sha256)
-- 數字簽章 (manifest.sha256.sig)
+- System integrity (manifest.sha256)
+- Digital signature (manifest.sha256.sig)
 
-### 測試前準備
+### Test Preparation
 ```bash
-# 確保系統完整性
+# Ensure system integrity
 bash scripts/integrity_check.sh
 
-# 如需重新生成
+# Regenerate if needed
 bash tools/demo/user/restore.sh --auto
 ```
 
-## 📋 測試報告
+## 📋 Test Reports
 
-測試結果保存在 `tests/results/` 目錄：
-- `test_results_YYYYMMDD_HHMMSS.json` - JSON 格式結果
-- `test_report_YYYYMMDD_HHMMSS.txt` - 人類可讀報告
+Test results are saved in `tests/results/` directory:
+- `test_results_YYYYMMDD_HHMMSS.json` - JSON format results
+- `test_report_YYYYMMDD_HHMMSS.txt` - Human readable report
 
-## 🛠️ 故障排除
+## 🛠️ Troubleshooting
 
-### 常見問題
+### Common Issues
 
-#### 測試失敗
+#### Test Failures
 ```bash
-# 檢查系統狀態
+# Check system status
 bash scripts/integrity_check.sh
 
-# 恢復系統
+# Restore system
 bash tools/demo/user/restore.sh --auto
 
-# 重新運行測試
+# Re-run tests
 bash tests/test_runner.sh
 ```
 
-#### 權限問題
+#### Permission Issues
 ```bash
-# 確保測試腳本可執行
+# Ensure test scripts are executable
 chmod +x tests/**/*.sh
 
-# 檢查文件權限
+# Check file permissions
 ls -la tests/
 ```
 
-#### 依賴問題
+#### Dependency Issues
 ```bash
-# 檢查必要文件
+# Check required files
 ls -la scripts/integrity_check.sh
 ls -la tools/demo/user/restore.sh
 ls -la data/manifest.sha256
 ```
 
-## 📚 相關文檔
+## 📚 Related Documentation
 
-- [主 README.md](../README.md) - 系統概述
-- [安全指南](../docs/security-guide.md) - 安全功能詳解
-- [用戶指南](../docs/user-guide.md) - 完整用戶指南
+- [Main README.md](../README.md) - System overview
+- [Security Guide](../docs/security-guide.md) - Security feature details
+- [User Guide](../docs/user-guide.md) - Complete user guide
 
-## 🤝 貢獻指南
+## 🤝 Contributing Guide
 
-### 添加新測試
-1. 在適當目錄創建測試腳本
-2. 遵循現有命名約定
-3. 實現標準測試函數
-4. 更新 test_runner.sh
-5. 測試並驗證
+### Adding New Tests
+1. Create test script in appropriate directory
+2. Follow existing naming conventions
+3. Implement standard test functions
+4. Update test_runner.sh
+5. Test and verify
 
-### 測試標準
-- 使用統一的日誌格式
-- 實現適當的錯誤處理
-- 提供清晰的測試消息
-- 支持結果輸出到 JSON
+### Test Standards
+- Use standardized return codes
+- Include comprehensive error handling
+- Provide clear test descriptions
+- Ensure reproducible results
 
 ---
 
